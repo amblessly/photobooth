@@ -229,7 +229,6 @@
       name:      name,
       rating:    rating,
       message:   message,
-<<<<<<< HEAD
       hearts:    0,
       timestamp: firebase.firestore.FieldValue.serverTimestamp(),
     })
@@ -237,14 +236,6 @@
       lastSubmitTime = Date.now();
       showSuccess();
       prependReview({ name: name, rating: rating, message: message, hearts: 0, timestamp: null }, docRef.id);
-=======
-      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-    })
-    .then(function() {
-      lastSubmitTime = Date.now();
-      showSuccess();
-      prependReview({ name: name, rating: rating, message: message, timestamp: null });
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
     })
     .catch(function(err) {
       console.error('[Feedback] Submit error:', err);
@@ -293,7 +284,6 @@
     el.style.display = 'none';
   }
 
-<<<<<<< HEAD
   /* ── Hearts (one tap per device, stored locally) ──────────── */
   var HEARTED_KEY = 'snapcrate_hearted_reviews';
 
@@ -393,8 +383,6 @@
     });
   }
 
-=======
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
   /* ── Review wall ───────────────────────────────────────── */
   var STAR_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
 
@@ -413,7 +401,6 @@
     } catch(e) { return 'Just now'; }
   }
 
-<<<<<<< HEAD
   function makeReviewEl(data, id) {
     var div = document.createElement('div');
     div.className = 'fb-review';
@@ -421,39 +408,23 @@
       div.dataset.id = id;            // kept for backward compatibility
       div.dataset.reviewId = id;      // explicit attribute per spec: data-review-id on the card
     }
-=======
-  function makeReviewEl(data) {
-    var div = document.createElement('div');
-    div.className = 'fb-review';
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
     div.innerHTML =
       '<div class="fb-review-header">' +
         '<span class="fb-review-name">' + sanitize(data.name) + '</span>' +
         '<span class="fb-review-stars">' + renderStars(data.rating) + '</span>' +
-<<<<<<< HEAD
         heartButtonHTML(id, data.hearts, hasHearted(id)) +
-=======
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
         '<span class="fb-review-date">' + formatDate(data.timestamp) + '</span>' +
       '</div>' +
       '<p class="fb-review-msg">' + sanitize(data.message) + '</p>';
     return div;
   }
 
-<<<<<<< HEAD
   function prependReview(data, id) {
-=======
-  function prependReview(data) {
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
     var list = document.getElementById('fbReviewList');
     var empty = list.querySelector('.fb-wall-empty, .fb-wall-loading');
     if (empty) empty.remove();
 
-<<<<<<< HEAD
     var el = makeReviewEl(data, id);
-=======
-    var el = makeReviewEl(data);
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
     el.style.borderColor = 'var(--mint)';
     list.insertBefore(el, list.firstChild);
     displayedCount++;
@@ -501,13 +472,9 @@
 
       snap.forEach(function(doc) {
         var data = doc.data();
-<<<<<<< HEAD
         // --- DIAGNOSTIC LOGGING (temporary) ---
         console.log('[Heart] loaded doc', doc.id, '→ hearts in Firestore =', data.hearts, '(raw type:', typeof data.hearts, ')');
         list.appendChild(makeReviewEl(data, doc.id));
-=======
-        list.appendChild(makeReviewEl(data));
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
         displayedCount++;
         displayedSum += (data.rating || 0);
         lastDoc = doc;
@@ -543,10 +510,7 @@
       console.warn('[Feedback] Firebase unavailable — feedback section hidden.');
       return;
     }
-<<<<<<< HEAD
     clearStaleHeartLocksOnce();
-=======
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
     buildHTML();
     initStars();
     initCharCounter();
@@ -560,12 +524,9 @@
     document.getElementById('fbLoadMoreBtn').addEventListener('click', function() {
       loadReviews(true);
     });
-<<<<<<< HEAD
     // Delegated on the list container so it covers reviews added later
     // (load-more, or a freshly-submitted review prepended to the top).
     document.getElementById('fbReviewList').addEventListener('click', handleHeartClick);
-=======
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
 
     loadReviews(false);
   }

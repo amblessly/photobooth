@@ -270,7 +270,6 @@
 }
 .fb-review-stars { display: flex; gap: 2px; color: var(--butter); line-height: 0; }
 .fb-review-stars svg { width: 14px; height: 14px; }
-<<<<<<< HEAD
 
 /* ── Heart reaction ──────────────────────────────────────── */
 .fb-heart-btn {
@@ -305,8 +304,6 @@
 }
 .fb-heart-count { min-width: 8px; text-align: left; }
 
-=======
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
 .fb-review-date {
   font-size: .72rem;
   color: var(--ink-soft);

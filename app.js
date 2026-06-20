@@ -1,17 +1,13 @@
 /* ============================================================
    APP.JS — Enhanced: individual photo retake, polaroid caption,
    image stickers, rotation, mobile improvements.
-<<<<<<< HEAD
    Gallery + export updated: each layout uses its own canonical
    canvas dimensions (no forced uniform sizing).
-=======
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
    ============================================================ */
 
 (() => {
   'use strict';
 
-<<<<<<< HEAD
   /* ----------------------------------------------------------
      ZOOM LOCK
      Belt-and-suspenders alongside the viewport meta tag + CSS
@@ -50,8 +46,6 @@
     }, { passive: false });
   })();
 
-=======
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
   const state = {
     layoutId: 'strip',
     shotCount: 3,
@@ -66,10 +60,7 @@
     soundOn: true,
     themeIdx: 0,
     retakeSlot: null,    // index of slot being retaken (null = normal capture)
-<<<<<<< HEAD
     flashOn: false,      // screen-flash effect toggle (visual only, no device torch)
-=======
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
   };
 
   const MUSIC_SRC = 'assets/music/background-music.mp3';
@@ -97,11 +88,8 @@
     enableCameraBtn: $('enableCameraBtn'),
     flipCameraBtn: $('flipCameraBtn'),
     mirrorBtn: $('mirrorBtn'),
-<<<<<<< HEAD
     flashToggleBtn: $('flashToggleBtn'),
     cameraFlash: $('cameraFlash'),
-=======
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
     filterToggleBtn: $('filterToggleBtn'),
     filterStrip: $('filterStrip'),
     timerPills: $('timerPills'),
@@ -198,7 +186,6 @@
       return `<svg width="64" height="64" viewBox="0 0 64 64"><rect x="6" y="6" width="52" height="52" rx="6" fill="#FFF6EC" stroke="${stroke}" stroke-width="2"/>
         <rect x="11" y="11" width="20" height="20" rx="3" fill="#FFD9CF"/><rect x="33" y="11" width="20" height="20" rx="3" fill="#D7F3E8"/><rect x="11" y="33" width="20" height="20" rx="3" fill="#DCEBFC"/><rect x="33" y="33" width="20" height="20" rx="3" fill="#FFEFC4"/></svg>`;
     }
-<<<<<<< HEAD
     if (id === 'polaroid') {
       return `<svg width="64" height="64" viewBox="0 0 64 64"><rect x="10" y="6" width="44" height="50" rx="3" fill="#FFF6EC" stroke="${stroke}" stroke-width="2"/>
         <rect x="14" y="10" width="36" height="32" rx="2" fill="#FFD9CF"/></svg>`;
@@ -220,8 +207,6 @@
         <rect x="8" y="2" width="48" height="14" rx="2" fill="${stroke}" opacity=".75"/><rect x="8" y="48" width="48" height="14" rx="2" fill="${stroke}" opacity=".5"/>
         <rect x="14" y="6" width="36" height="6" rx="1" fill="#FFF6EC"/><rect x="14" y="52" width="28" height="5" rx="1" fill="#FFF6EC"/></svg>`;
     }
-=======
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
     return `<svg width="64" height="64" viewBox="0 0 64 64"><rect x="10" y="6" width="44" height="50" rx="3" fill="#FFF6EC" stroke="${stroke}" stroke-width="2"/>
       <rect x="14" y="10" width="36" height="32" rx="2" fill="#FFD9CF"/></svg>`;
   }
@@ -330,7 +315,6 @@
 
   el.mirrorBtn.addEventListener('click', () => { Camera.toggleMirror(); });
 
-<<<<<<< HEAD
   el.flashToggleBtn.addEventListener('click', () => {
     state.flashOn = !state.flashOn;
     updateFlashToggleUI();
@@ -343,8 +327,6 @@
   }
   updateFlashToggleUI();
 
-=======
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
   function showPosePrompt() {
     if (Math.random() > 0.55) {
       el.poseText.textContent = UI.randomPose();
@@ -354,11 +336,7 @@
   }
 
   /* ----------------------------------------------------------
-<<<<<<< HEAD
      SHOTS PANEL
-=======
-     SHOTS PANEL — now with individual retake buttons
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
   ---------------------------------------------------------- */
   function updateShotsPanel() {
     el.shotsStrip.innerHTML = '';
@@ -372,10 +350,6 @@
         img.src = photo.toDataURL('image/jpeg', 0.9);
         thumb.appendChild(img);
 
-<<<<<<< HEAD
-=======
-        // Individual retake button
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
         const retakeBtn = document.createElement('button');
         retakeBtn.className = 'shot-retake-btn';
         retakeBtn.type = 'button';
@@ -399,10 +373,6 @@
     el.retakeLastBtn.disabled = captured === 0;
     el.toDecorateBtn.disabled = captured < state.shotCount;
 
-<<<<<<< HEAD
-=======
-    // Update shutter label when in retake mode
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
     if (state.retakeSlot !== null) {
       el.shutterBtn.setAttribute('aria-label', `Retake photo ${state.retakeSlot + 1}`);
       el.shutterBtn.classList.add('retake-mode');
@@ -412,33 +382,15 @@
     }
   }
 
-<<<<<<< HEAD
-=======
-  /** Begin retaking a specific slot */
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
   function startRetake(slotIndex) {
     state.retakeSlot = slotIndex;
     updateShotsPanel();
     UI.showToast(`Ready to retake photo ${slotIndex + 1} — press shutter`);
   }
 
-<<<<<<< HEAD
   let captureBusy = false;
   el.shutterBtn.addEventListener('click', async () => {
     if (captureBusy) return;
-=======
-  /** Cancel retake mode */
-  function cancelRetake() {
-    state.retakeSlot = null;
-    updateShotsPanel();
-  }
-
-  let captureBusy = false;
-  el.shutterBtn.addEventListener('click', async () => {
-    if (captureBusy) return;
-
-    // In normal mode, don't capture if all slots filled (unless retaking)
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
     if (state.retakeSlot === null && state.photos.filter(Boolean).length >= state.shotCount) return;
 
     captureBusy = true;
@@ -483,19 +435,11 @@
     const filtered = Filters.apply(state.filterId, raw);
 
     if (state.retakeSlot !== null) {
-<<<<<<< HEAD
-=======
-      // Replace specific slot
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
       state.photos[state.retakeSlot] = raw;
       state.filteredPhotos[state.retakeSlot] = filtered;
       UI.showToast(`Photo ${state.retakeSlot + 1} replaced!`);
       state.retakeSlot = null;
     } else {
-<<<<<<< HEAD
-=======
-      // Append next photo
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
       state.photos.push(raw);
       state.filteredPhotos.push(filtered);
     }
@@ -505,7 +449,6 @@
   }
 
   function flashEffect() {
-<<<<<<< HEAD
     if (!state.flashOn) return;
     el.cameraFlash.classList.remove('fire');
     void el.cameraFlash.offsetWidth; // restart animation if fired in quick succession
@@ -516,19 +459,6 @@
   el.retakeLastBtn.addEventListener('click', () => {
     const lastIdx = state.photos.reduce((last, p, i) => p ? i : last, -1);
     if (lastIdx >= 0) startRetake(lastIdx);
-=======
-    el.shutterBtn.classList.remove('flash');
-    requestAnimationFrame(() => el.shutterBtn.classList.add('flash'));
-    setTimeout(() => el.shutterBtn.classList.remove('flash'), 400);
-  }
-
-  // "Retake last" = retake the most recently taken photo
-  el.retakeLastBtn.addEventListener('click', () => {
-    const lastIdx = state.photos.reduce((last, p, i) => p ? i : last, -1);
-    if (lastIdx >= 0) {
-      startRetake(lastIdx);
-    }
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
   });
 
   el.restartSessionBtn.addEventListener('click', () => {
@@ -548,13 +478,10 @@
 
   /* ----------------------------------------------------------
      SCREEN 3: DECORATE
-<<<<<<< HEAD
      The base canvas is drawn at full export resolution.
      CSS scaling shrinks it to fit the viewport for editing.
      decorateScaleFactor = exportPx / displayCSSPx
      (used later when baking layers onto the export canvas)
-=======
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
   ---------------------------------------------------------- */
   let decorateBaseCanvas = null;
   let decorateScaleFactor = 1;
@@ -562,12 +489,8 @@
   function renderDecorateStage() {
     el.decorateStage.innerHTML = '';
     const layout = UI.getLayout(state.layoutId);
-<<<<<<< HEAD
     // Always use the canonical export dimensions
     const { w, h } = UI.getExportSize(state.layoutId, state.shotCount);
-=======
-    const { w, h } = layout.size(state.shotCount);
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
 
     decorateBaseCanvas = document.createElement('canvas');
     decorateBaseCanvas.width = w;
@@ -580,7 +503,6 @@
 
     el.decorateStage.appendChild(decorateBaseCanvas);
 
-<<<<<<< HEAD
     // Scale canvas DOWN for display only — never resample pixels
     const isMobile = window.innerWidth <= 880;
     const maxDisplayW = isMobile
@@ -601,17 +523,6 @@
     el.decorateStage.style.height = displayH + 'px';
 
     // Scale factor: how many export pixels per display CSS pixel
-=======
-    const isMobile = window.innerWidth <= 880;
-    const maxW = isMobile
-      ? Math.min(w, window.innerWidth - 32)
-      : Math.min(480, window.innerWidth - 64);
-    const displayScale = Math.min(1, maxW / w);
-    decorateBaseCanvas.style.width = (w * displayScale) + 'px';
-    decorateBaseCanvas.style.height = (h * displayScale) + 'px';
-    el.decorateStage.style.width = (w * displayScale) + 'px';
-    el.decorateStage.style.height = (h * displayScale) + 'px';
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
     decorateScaleFactor = 1 / displayScale;
 
     editor = UI.createEditor(el.decorateStage);
@@ -621,10 +532,6 @@
     el.bannerInput.value = state.banner;
     updateCaptionCounter();
 
-<<<<<<< HEAD
-=======
-    // Load manifest then populate sticker grid
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
     UI.loadStickerManifest().then(() => {
       renderStickerGrid();
       UI.preloadStickerImages();
@@ -666,10 +573,6 @@
       item.title = s.label;
 
       if (s.isImage) {
-<<<<<<< HEAD
-=======
-        // Image sticker — show with lazy-loaded <img>
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
         item.innerHTML = `<img src="${s.src}" alt="${s.label}" loading="lazy" style="width:100%;height:100%;object-fit:contain;" onerror="this.closest('.sticker-item').style.display='none'">`;
         item.addEventListener('click', () => {
           editor.addLayer('sticker', s.label, { isImage: true, src: s.src, w: 80, h: 80 });
@@ -716,10 +619,6 @@
     el.textInput.value = '';
   });
 
-<<<<<<< HEAD
-=======
-  // Caption counter
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
   const captionCounter = $('captionCounter');
   function updateCaptionCounter() {
     if (!captionCounter) return;
@@ -731,10 +630,7 @@
   el.bannerInput.addEventListener('input', (e) => {
     state.banner = e.target.value.slice(0, 30);
     e.target.value = state.banner;
-<<<<<<< HEAD
     updateCaptionCounter();
-=======
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
     redrawBase();
   });
 
@@ -749,7 +645,6 @@
 
   /* ----------------------------------------------------------
      SCREEN 4: EXPORT
-<<<<<<< HEAD
      Export canvas always matches the layout's canonical size.
      No cropping, stretching, or resampling occurs.
   ---------------------------------------------------------- */
@@ -768,14 +663,6 @@
     el.exportCanvas.style.width = Math.round(w * dispScale) + 'px';
     el.exportCanvas.style.height = Math.round(h * dispScale) + 'px';
 
-=======
-  ---------------------------------------------------------- */
-  async function renderExportCanvas(layerSnapshots) {
-    const layout = UI.getLayout(state.layoutId);
-    const { w, h } = layout.size(state.shotCount);
-    el.exportCanvas.width = w;
-    el.exportCanvas.height = h;
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
     const ctx = el.exportCanvas.getContext('2d');
     layout.draw(ctx, state.filteredPhotos, {
       frameColor: state.frameColor, textColor: state.textColor, banner: state.banner,
@@ -786,16 +673,12 @@
       await UI.bakeSnapshots(ctx, layerSnapshots, decorateScaleFactor);
     }
 
-<<<<<<< HEAD
     // Save to gallery — include layout metadata for proper display
     saveToGallery(el.exportCanvas.toDataURL('image/png'), {
       layoutId: state.layoutId,
       exportW: w,
       exportH: h,
     });
-=======
-    saveToGallery(el.exportCanvas.toDataURL('image/png'));
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
   }
 
   function download(filename, dataUrl) {
@@ -808,7 +691,6 @@
   }
 
   el.downloadPngBtn.addEventListener('click', () => {
-<<<<<<< HEAD
     // dataUrl already comes from the full-res exportCanvas — no re-encoding needed
     download(`snapcrate-${Date.now()}.png`, el.exportCanvas.toDataURL('image/png'));
     UI.showToast('PNG saved');
@@ -816,13 +698,6 @@
 
   el.downloadJpgBtn.addEventListener('click', () => {
     // Composite onto a white-background canvas at full resolution
-=======
-    download(`snapcrate-${Date.now()}.png`, el.exportCanvas.toDataURL('image/png'));
-    UI.showToast('PNG saved to downloads');
-  });
-
-  el.downloadJpgBtn.addEventListener('click', () => {
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
     const tmp = document.createElement('canvas');
     tmp.width = el.exportCanvas.width;
     tmp.height = el.exportCanvas.height;
@@ -831,11 +706,7 @@
     tctx.fillRect(0, 0, tmp.width, tmp.height);
     tctx.drawImage(el.exportCanvas, 0, 0);
     download(`snapcrate-${Date.now()}.jpg`, tmp.toDataURL('image/jpeg', 0.92));
-<<<<<<< HEAD
     UI.showToast('JPG saved');
-=======
-    UI.showToast('JPG saved to downloads');
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
   });
 
   el.downloadQrBtn.addEventListener('click', () => {
@@ -884,17 +755,12 @@
 
   /* ----------------------------------------------------------
      GALLERY
-<<<<<<< HEAD
      Each item now stores: dataUrl, layoutId, exportW, exportH.
      Gallery thumbnails scale via CSS (object-fit: contain) so
      aspect ratio is always correct. The underlying dataUrl always
      holds full-resolution pixels.
   ---------------------------------------------------------- */
   const GALLERY_KEY = 'snapcrate_gallery_v2'; // bumped version to avoid stale schema
-=======
-  ---------------------------------------------------------- */
-  const GALLERY_KEY = 'snapcrate_gallery_v1';
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
 
   function loadGallery() {
     try { return JSON.parse(localStorage.getItem(GALLERY_KEY)) || []; }
@@ -906,7 +772,6 @@
     catch (_) {}
   }
 
-<<<<<<< HEAD
   /**
    * @param {string} dataUrl   - PNG data URL from the full-res export canvas
    * @param {object} meta      - { layoutId, exportW, exportH }
@@ -923,12 +788,6 @@
       createdAt: Date.now(),
     });
     saveGalleryList(list.slice(0, 40)); // keep last 40
-=======
-  function saveToGallery(dataUrl) {
-    const list = loadGallery();
-    list.unshift({ id: 'g_' + Date.now(), dataUrl, favorite: false, createdAt: Date.now() });
-    saveGalleryList(list.slice(0, 40));
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
     renderGalleryBadge();
   }
 
@@ -952,7 +811,6 @@
     list.forEach(item => {
       const card = document.createElement('div');
       card.className = 'gallery-card';
-<<<<<<< HEAD
 
       // Compute aspect ratio — default to portrait strip if metadata missing
       const exportW = item.exportW || 1200;
@@ -974,13 +832,6 @@
         <div class="gallery-card-img-wrap">
           <img src="${item.dataUrl}" alt="${layoutLabel} photobooth strip" loading="lazy">
         </div>
-=======
-      const favIcon = item.favorite
-        ? `<svg viewBox="0 0 24 24" width="15" height="15"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill="currentColor"/></svg>`
-        : `<svg viewBox="0 0 24 24" width="15" height="15"><path d="M22 9.24l-7.19-.62L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.63-7.03L22 9.24zm-10 6.93l-3.76 2.27 1-4.28-3.32-2.88 4.38-.38L12 6.1l1.71 4.81 4.38.38-3.32 2.88 1 4.28L12 16.17z" fill="currentColor"/></svg>`;
-      card.innerHTML = `
-        <img src="${item.dataUrl}" alt="Saved photobooth strip" loading="lazy">
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
         <div class="gallery-card-actions">
           <button class="fav ${item.favorite ? 'active' : ''}" data-action="fav" title="Favorite">${favIcon}</button>
           <button data-action="download" title="Download"><svg viewBox="0 0 24 24" width="15" height="15"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor"/></svg></button>
@@ -988,11 +839,7 @@
         </div>
       `;
       card.querySelector('[data-action="fav"]').addEventListener('click', (e) => { e.stopPropagation(); toggleFavorite(item.id); });
-<<<<<<< HEAD
       card.querySelector('[data-action="download"]').addEventListener('click', (e) => { e.stopPropagation(); download(`snapcrate-${item.layoutId || 'strip'}-${item.id}.png`, item.dataUrl); });
-=======
-      card.querySelector('[data-action="download"]').addEventListener('click', (e) => { e.stopPropagation(); download(`snapcrate-${item.id}.png`, item.dataUrl); });
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
       card.querySelector('[data-action="delete"]').addEventListener('click', (e) => { e.stopPropagation(); deletePhoto(item.id); });
       el.galleryGrid.appendChild(card);
     });
@@ -1043,12 +890,9 @@
     state.themeIdx = (state.themeIdx + 1) % THEMES.length;
     document.body.dataset.theme = THEMES[state.themeIdx];
     UI.showToast(`Theme: ${THEMES[state.themeIdx]}`);
-<<<<<<< HEAD
     // Manual theme picks become the new base palette the ambient
     // system gently drifts around — keeps auto-variation "in family."
     if (window.AmbientTheme) AmbientTheme.setBaseTheme(THEMES[state.themeIdx]);
-=======
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
   });
 
   let musicReady = false;
@@ -1097,7 +941,6 @@
   });
 
   /* ----------------------------------------------------------
-<<<<<<< HEAD
      AUDIO LIFECYCLE — stop music when the user isn't actually
      looking at the page, so it never plays "ghost" in a
      background tab or after navigating away/closing/refreshing.
@@ -1145,8 +988,6 @@
   window.addEventListener('beforeunload', stopMusicHard);
 
   /* ----------------------------------------------------------
-=======
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
      INIT
   ---------------------------------------------------------- */
   function init() {
@@ -1155,14 +996,9 @@
     populateShotCountSelect();
     renderGalleryBadge();
     initMusic();
-<<<<<<< HEAD
     UI.loadStickerManifest();
     goToScreen('layout');
     if (window.AmbientTheme) AmbientTheme.init(THEMES[state.themeIdx]);
-=======
-    UI.loadStickerManifest(); // pre-fetch stickers.json in background
-    goToScreen('layout');
->>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
     window.addEventListener('beforeunload', () => Camera.stop());
   }
 

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<<<<<<< HEAD
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+=======
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+>>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
+<title>Snapcrate — Photobooth</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="feedback.css" />
+<<<<<<< HEAD
+<link rel="stylesheet" href="whatsnew.css" />
+=======
+>>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
+</head>
+<body data-theme="cute">
+
+  <!-- Decorative floating background shapes -->
+  <div class="bg-decor" id="bgDecor" aria-hidden="true"></div>
+
+  <!-- ============ APP HEADER ============ -->
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 48 48" width="34" height="34">
+          <rect x="4" y="10" width="40" height="30" rx="8" fill="var(--accent)"/>
+          <circle cx="24" cy="25" r="9" fill="var(--cream)"/>
+          <circle cx="24" cy="25" r="5" fill="var(--ink)"/>
+          <rect x="16" y="6" width="10" height="7" rx="3" fill="var(--accent)"/>
+          <circle cx="36" cy="17" r="2.3" fill="var(--mint)"/>
+        </svg>
+      </span>
+      <div class="brand-text">
+        <span class="brand-name">Snapcrate</span>
+        <span class="brand-tag">photobooth</span>
+      </div>
+    </div>
+
+<<<<<<< HEAD
+    <!-- ============ STEP PROGRESS ============ -->
+    <div class="steps" id="stepsBar" aria-hidden="true">
+      <span class="step active" data-step="layout">1 · Layout</span>
+      <span class="step" data-step="capture">2 · Capture</span>
+      <span class="step" data-step="decorate">3 · Decorate</span>
+      <span class="step" data-step="export">4 · Save</span>
+    </div>
+
+=======
+>>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
+    <nav class="header-actions">
+      <button class="icon-btn" id="themeBtn" type="button" aria-label="Change theme" title="Change theme">
+        <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 3a9 9 0 1 0 9 9 6.5 6.5 0 0 1-9-9Z" fill="currentColor"/></svg>
+      </button>
+      <button class="icon-btn" id="soundBtn" type="button" aria-label="Toggle sound" title="Toggle sound">
+        <svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 9v6h4l5 5V4L8 9H4Z" fill="currentColor"/></svg>
+      </button>
+      <button class="icon-btn" id="galleryBtn" type="button" aria-label="Open gallery" title="Gallery">
+        <svg viewBox="0 0 24 24" width="20" height="20"><rect x="3" y="5" width="18" height="14" rx="3" fill="currentColor"/><circle cx="8.5" cy="10.5" r="1.6" fill="var(--cream)"/><path d="m4 17 5-5 4 4 3-3 4 4v1H4Z" fill="var(--cream)"/></svg>
+        <span class="badge" id="galleryBadge" hidden>0</span>
+      </button>
+    </nav>
+  </header>
+
+<<<<<<< HEAD
+=======
+  <!-- ============ STEP PROGRESS ============ -->
+  <div class="steps" id="stepsBar" aria-hidden="true">
+    <span class="step active" data-step="layout">1 · Layout</span>
+    <span class="step" data-step="capture">2 · Capture</span>
+    <span class="step" data-step="decorate">3 · Decorate</span>
+    <span class="step" data-step="export">4 · Save</span>
+  </div>
+
+>>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
+  <main class="app-main">
+
+    <!-- ============ SCREEN: LAYOUT PICKER ============ -->
+    <section class="screen active" id="screen-layout" data-screen="layout">
+      <div class="screen-head">
+        <h1>Pick your strip</h1>
+        <p>Choose a layout — you can switch later without losing your shots.</p>
+      </div>
+
+      <div class="layout-grid" id="layoutGrid">
+        <!-- populated by ui.js -->
+      </div>
+
+      <div class="screen-foot">
+        <div class="field-inline">
+          <label for="shotCountSelect">Shots</label>
+          <select id="shotCountSelect" class="select-pill"></select>
+        </div>
+        <button class="btn btn-primary btn-lg" id="toCaptureBtn" type="button">
+          Continue to camera
+          <svg viewBox="0 0 24 24" width="18" height="18"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- ============ SCREEN: CAPTURE ============ -->
+    <section class="screen" id="screen-capture" data-screen="capture">
+      <div class="capture-layout">
+
+        <div class="camera-wrap">
+          <div class="camera-stage" id="cameraStage">
+            <video id="cameraVideo" autoplay playsinline muted></video>
+            <canvas id="captureCanvas" hidden></canvas>
+
+            <div class="camera-overlay" id="poseOverlay" hidden>
+              <span class="pose-label">Try this pose</span>
+              <span class="pose-text" id="poseText">Peace sign!</span>
+            </div>
+
+            <div class="countdown-overlay" id="countdownOverlay" hidden>
+              <span class="countdown-number" id="countdownNumber">3</span>
+            </div>
+
+            <div class="camera-permission" id="cameraPermission">
+              <svg viewBox="0 0 64 64" width="56" height="56"><rect x="6" y="16" width="52" height="38" rx="10" fill="var(--accent-soft)"/><circle cx="32" cy="35" r="12" fill="var(--cream)"/><circle cx="32" cy="35" r="7" fill="var(--ink)"/><rect x="22" y="8" width="14" height="9" rx="4" fill="var(--accent-soft)"/></svg>
+              <h3>Camera access needed</h3>
+              <p id="cameraPermissionText">Allow camera access to start your photobooth session.</p>
+              <button class="btn btn-primary" id="enableCameraBtn" type="button">Enable camera</button>
+            </div>
+
+            <div class="camera-skeleton" id="cameraSkeleton" hidden>
+              <div class="skeleton-shimmer"></div>
+            </div>
+<<<<<<< HEAD
+
+            <div class="camera-flash" id="cameraFlash" aria-hidden="true"></div>
+=======
+>>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
+          </div>
+
+          <div class="camera-controls">
+            <button class="icon-btn ghost" id="flipCameraBtn" type="button" title="Switch camera">
+              <svg viewBox="0 0 24 24" width="20" height="20"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4m14-2v2a4 4 0 0 1-4 4H3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <button class="icon-btn ghost" id="mirrorBtn" type="button" title="Toggle mirror">
+              <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 2v20M5 7l-3 5 3 5M19 7l3 5-3 5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+<<<<<<< HEAD
+            <button class="icon-btn ghost" id="flashToggleBtn" type="button" title="Flash off" aria-pressed="false">
+              <svg viewBox="0 0 24 24" width="20" height="20"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+=======
+>>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
+
+            <div class="timer-pills" id="timerPills">
+              <button class="pill-btn active" data-timer="3" type="button">3s</button>
+              <button class="pill-btn" data-timer="5" type="button">5s</button>
+              <button class="pill-btn" data-timer="10" type="button">10s</button>
+            </div>
+
+            <button class="icon-btn ghost" id="filterToggleBtn" type="button" title="Filters">
+              <svg viewBox="0 0 24 24" width="20" height="20"><circle cx="8" cy="8" r="5" fill="currentColor" opacity=".55"/><circle cx="15" cy="15" r="5" fill="currentColor" opacity=".85"/></svg>
+            </button>
+          </div>
+
+          <div class="filter-strip" id="filterStrip" hidden></div>
+
+          <div class="shutter-row">
+            <button class="btn btn-ghost" id="retakeLastBtn" type="button" disabled>Retake last</button>
+            <button class="shutter-btn" id="shutterBtn" type="button" aria-label="Take photo">
+              <span class="shutter-ring"></span>
+            </button>
+            <button class="btn btn-ghost" id="restartSessionBtn" type="button">Restart</button>
+          </div>
+        </div>
+
+        <aside class="shots-panel">
+          <h3>Your shots <span id="shotsProgress">0 / 3</span></h3>
+          <div class="shots-strip" id="shotsStrip"></div>
+          <button class="btn btn-primary" id="toDecorateBtn" type="button" disabled>
+            Decorate strip
+            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ============ SCREEN: DECORATE ============ -->
+    <section class="screen" id="screen-decorate" data-screen="decorate">
+      <div class="decorate-layout">
+
+        <div class="decorate-stage-wrap">
+          <div class="decorate-stage" id="decorateStage">
+            <!-- canvas-rendered strip + draggable sticker/text layers injected by ui.js -->
+          </div>
+          <p class="hint-text">Drag to move · Corner handle to resize · ↻ handle to rotate</p>
+        </div>
+
+        <aside class="decorate-panel">
+          <div class="panel-tabs" id="panelTabs">
+            <button class="panel-tab active" data-panel="stickers" type="button">Stickers</button>
+            <button class="panel-tab" data-panel="text" type="button">Text</button>
+            <button class="panel-tab" data-panel="frame" type="button">Frame</button>
+          </div>
+
+          <div class="panel-body" id="panel-stickers">
+            <div class="sticker-grid" id="stickerGrid"></div>
+          </div>
+
+          <div class="panel-body" id="panel-text" hidden>
+            <label class="field-label" for="textInput">Add a caption</label>
+            <input type="text" id="textInput" class="text-input" placeholder="e.g. Best Day Ever" maxlength="40">
+            <button class="btn btn-primary btn-block" id="addTextBtn" type="button">Add text to strip</button>
+
+            <div class="text-style-row">
+              <label class="field-label">Style</label>
+              <div class="swatch-row" id="textColorRow"></div>
+            </div>
+            <p class="hint-text-sm">Tip: double-tap any text on the strip to edit it.</p>
+          </div>
+
+          <div class="panel-body" id="panel-frame" hidden>
+            <label class="field-label">Frame theme</label>
+            <div class="theme-grid" id="frameThemeGrid"></div>
+            <label class="field-label">Frame color</label>
+            <div class="swatch-row" id="frameColorRow"></div>
+            <label class="field-label">Caption banner</label>
+            <input type="text" id="bannerInput" class="text-input" placeholder="Your caption here (max 30 chars)" maxlength="30">
+            <span class="caption-counter" id="captionCounter">0 / 30</span>
+          </div>
+
+          <button class="btn btn-primary btn-lg btn-block" id="toExportBtn" type="button">
+            Finish &amp; save
+            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ============ SCREEN: EXPORT ============ -->
+    <section class="screen" id="screen-export" data-screen="export">
+      <div class="export-layout">
+        <div class="export-preview-wrap">
+          <canvas id="exportCanvas" class="export-canvas"></canvas>
+          <div class="confetti-layer" id="confettiLayer" aria-hidden="true"></div>
+        </div>
+
+        <aside class="export-panel">
+          <h2>All done!</h2>
+          <p>Your strip is ready. Save it, or jump back in for another round.</p>
+
+          <div class="export-actions">
+            <button class="btn btn-primary btn-lg btn-block" id="downloadPngBtn" type="button">Download PNG</button>
+            <button class="btn btn-secondary btn-block" id="downloadJpgBtn" type="button">Download JPG</button>
+            <button class="btn btn-secondary btn-block" id="downloadQrBtn" type="button">Generate share code</button>
+          </div>
+
+          <div class="qr-box" id="qrBox" hidden></div>
+
+          <div class="export-divider"></div>
+
+          <button class="btn btn-ghost btn-block" id="newSessionBtn" type="button">Start a new session</button>
+          <button class="btn btn-ghost btn-block" id="backToDecorateBtn" type="button">Back to editing</button>
+        </aside>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============ GALLERY DRAWER ============ -->
+  <div class="drawer-backdrop" id="galleryBackdrop" hidden></div>
+  <div class="gallery-drawer" id="galleryDrawer" aria-hidden="true">
+    <div class="drawer-head">
+      <h3>Your gallery</h3>
+      <button class="icon-btn" id="closeGalleryBtn" type="button" aria-label="Close gallery">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="drawer-filters">
+      <button class="pill-btn active" data-galleryfilter="all" type="button">All</button>
+      <button class="pill-btn" data-galleryfilter="favorites" type="button">Favorites</button>
+    </div>
+    <div class="gallery-grid" id="galleryGrid">
+      <p class="gallery-empty" id="galleryEmpty">No strips yet — finish a session to see it here.</p>
+    </div>
+  </div>
+
+  <!-- ============ TOAST ============ -->
+  <div class="toast" id="toast" hidden></div>
+
+  <!-- ============ BACKGROUND MUSIC ============ -->
+  <!-- Swap MUSIC_SRC in app.js to point at your own track; this path is just a placeholder. -->
+  <audio id="bgMusic" preload="auto" loop></audio>
+
+  <script src="filters.js"></script>
+  <script src="camera.js"></script>
+  <script src="ui.js"></script>
+<<<<<<< HEAD
+  <script src="ambient.js"></script>
+=======
+>>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
+  <script src="app.js"></script>
+  <!-- Firebase v8 compat (for feedback system) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="feedback.js"></script>
+<<<<<<< HEAD
+  <script src="whatsnew.js"></script>
+=======
+>>>>>>> ca5a93b2148dccd840ca98cbd52af902aa6156c1
+
+</body>
+</html>

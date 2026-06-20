@@ -1,0 +1,52 @@
+// ============================================================
+// Firestore Security Rules — Snapcrate Photobooth
+// Collection: feedbacks
+//
+// Deploy via: Firebase Console → Firestore Database → Rules tab
+// (paste this whole file in, replacing what's there), or via the
+// Firebase CLI: firebase deploy --only firestore:rules
+// ============================================================
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /feedbacks/{reviewId} {
+
+      // Anyone can read the review wall.
+      allow read: if true;
+
+      // Creating a new review: require the real fields, correct types,
+      // sane lengths, a 1–5 rating, hearts starting at exactly 0, and a
+      // server-set timestamp (client can't forge the date).
+      allow create: if
+        request.resource.data.keys().hasOnly(['name', 'rating', 'message', 'hearts', 'timestamp']) &&
+        request.resource.data.name is string &&
+        request.resource.data.name.size() <= 30 &&
+        request.resource.data.rating is int &&
+        request.resource.data.rating >= 1 && request.resource.data.rating <= 5 &&
+        request.resource.data.message is string &&
+        request.resource.data.message.size() > 0 &&
+        request.resource.data.message.size() <= 500 &&
+        request.resource.data.hearts == 0 &&
+        request.resource.data.timestamp == request.time;
+
+      // Updating a review: ONLY the hearts field may change, and only by
+      // exactly +1 per call. name/rating/message/timestamp are immutable
+      // after creation — any attempt to touch them is rejected.
+      allow update: if
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hearts']) &&
+        request.resource.data.hearts is int &&
+        request.resource.data.hearts == resource.data.hearts + 1 &&
+        request.resource.data.name == resource.data.name &&
+        request.resource.data.rating == resource.data.rating &&
+        request.resource.data.message == resource.data.message &&
+        request.resource.data.timestamp == resource.data.timestamp;
+
+      // No client-side deletes — manage removals from the Firebase Console
+      // or a trusted backend if ever needed.
+      allow delete: if false;
+    }
+  }
+}

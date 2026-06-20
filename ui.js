@@ -71,31 +71,46 @@ const UI = (() => {
       defaultShots: 3,
       minShots: 3, maxShots: 4,
       exportW: 1200, exportH: 1800,
+      // Target aspect ratio (w/h) for each individual photo, matched to the
+      // original Classic Strip look — each photo reads as a clear portrait
+      // headshot rather than a flat landscape sliver. Full-bleed width would
+      // force a ~2.18 ratio (very flat) at 3 shots; instead each photo is
+      // centered and narrower so it keeps this ratio regardless of shot count.
+      PHOTO_RATIO: 1.35,
       size(shotCount) {
         const w = 1200;
         const h = 1800;
         const padding = 70;
-        // Distribute photos evenly within the canvas
-        const totalGaps = (shotCount - 1) * 40;
+        const gap = 40;
         const bannerH = 120;
+        // Available height first, same as before — this is what actually
+        // fits 3-4 photos stacked in the fixed canvas.
+        const totalGaps = (shotCount - 1) * gap;
         const photoH = Math.floor((h - padding * 2 - totalGaps - bannerH) / shotCount);
-        return { w, h, photoH, padding, gap: 40, bannerH };
+        // Photo width is now driven by the target ratio, not by "fill all
+        // available width" — this is what keeps each photo from looking
+        // flattened. It's centered within the full padded width, with the
+        // leftover split evenly as a side margin.
+        const maxW = w - padding * 2;
+        const photoW = Math.min(maxW, Math.round(photoH * this.PHOTO_RATIO));
+        const sideMargin = Math.round((maxW - photoW) / 2);
+        return { w, h, photoH, photoW, padding, sideMargin, gap, bannerH };
       },
       draw(ctx, photos, opts) {
-        const { w, h, photoH, padding, gap, bannerH } = this.size(photos.length);
+        const { w, h, photoH, photoW, padding, sideMargin, gap } = this.size(photos.length);
+        const x = padding + sideMargin;
         ctx.fillStyle = opts.frameColor || '#FFFFFF';
         roundRect(ctx, 0, 0, w, h, 60);
         ctx.fill();
 
         let y = padding;
         photos.forEach((p, i) => {
-          const photoW = w - padding * 2;
           if (p) {
-            drawCoveredImage(ctx, p, padding, y, photoW, photoH, 24);
+            drawCoveredImage(ctx, p, x, y, photoW, photoH, 24);
           } else {
             ctx.save();
             ctx.fillStyle = '#F0E8DC';
-            roundRect(ctx, padding, y, photoW, photoH, 24);
+            roundRect(ctx, x, y, photoW, photoH, 24);
             ctx.fill();
             ctx.fillStyle = '#B0A0C0';
             ctx.font = '600 48px "Baloo 2", sans-serif';
@@ -404,8 +419,8 @@ const UI = (() => {
     const count = shotCount || layout.defaultShots;
     switch (layout.id) {
       case 'strip': {
-        const { w, photoH, padding } = layout.size(count);
-        return (w - padding * 2) / photoH;
+        const { photoW, photoH } = layout.size(count);
+        return photoW / photoH;
       }
       case 'filmstrip': {
         const { photoW, photoH } = layout.size(count);

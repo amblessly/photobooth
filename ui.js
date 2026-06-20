@@ -391,6 +391,43 @@ const UI = (() => {
     return { w: layout.exportW, h: layout.exportH };
   }
 
+  /** Return the aspect ratio (w/h) of a single photo SLOT within a layout —
+   *  not the full export canvas. For multi-photo layouts (strip, filmstrip,
+   *  grid, grid6) each individual cell has its own shape, distinct from the
+   *  overall canvas shape. The live camera preview (.camera-stage) needs to
+   *  match this per-slot ratio exactly — otherwise the preview crops the
+   *  face one way, and drawCoveredImage() later crops it again a different
+   *  way when baking into the final layout, and faces/heads get clipped
+   *  unpredictably between what the user saw and what got saved. */
+  function getShotAspect(layoutId, shotCount) {
+    const layout = getLayout(layoutId);
+    const count = shotCount || layout.defaultShots;
+    switch (layout.id) {
+      case 'strip': {
+        const { w, photoH, padding } = layout.size(count);
+        return (w - padding * 2) / photoH;
+      }
+      case 'filmstrip': {
+        const { photoW, photoH } = layout.size(count);
+        return photoW / photoH;
+      }
+      case 'grid':
+      case 'grid6':
+        return 1; // square cells
+      case 'polaroid': {
+        const { w, photoH, padding } = layout.size();
+        return (w - padding * 2) / photoH;
+      }
+      case 'magazine': {
+        const { w, h } = layout.size();
+        const border = 24;
+        return (w - border * 2) / (h - border * 2);
+      }
+      default:
+        return 1;
+    }
+  }
+
   /* ----------------------------------------------------------
      CANVAS DRAW HELPERS
   ---------------------------------------------------------- */
@@ -1087,7 +1124,7 @@ const UI = (() => {
   function randomPose() { return POSES[Math.floor(Math.random() * POSES.length)]; }
 
   return {
-    listLayouts, getLayout, getExportSize,
+    listLayouts, getLayout, getExportSize, getShotAspect,
     drawCoveredImage, roundRect,
     getStickers, preloadStickerImages, loadStickerImage, loadStickerManifest,
     createEditor, bakeLayersToCanvasAsync, snapshotLayers, bakeSnapshots,

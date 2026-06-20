@@ -233,10 +233,25 @@
     state.filteredPhotos = [];
     state.retakeSlot = null;
     updateShotsPanel();
+    applyCameraStageAspect();
     goToScreen('capture');
     if (state.soundOn) setMusicPlaying(true);
     await startCameraFlow();
   });
+
+  /** Match the live camera preview's crop shape to the selected layout's
+   *  actual per-photo slot shape (see UI.getShotAspect). Without this, the
+   *  preview box uses a fixed aspect-ratio from CSS that has nothing to do
+   *  with the chosen layout — so the live view crops the face one way, and
+   *  drawCoveredImage() crops the captured frame a *different* way when it
+   *  gets baked into the final strip, clipping faces unpredictably depending
+   *  on layout. Setting it here keeps both crops identical. */
+  function applyCameraStageAspect() {
+    const ratio = UI.getShotAspect(state.layoutId, state.shotCount);
+    if (ratio && el.cameraStage) {
+      el.cameraStage.style.aspectRatio = ratio.toFixed(4);
+    }
+  }
 
   /* ----------------------------------------------------------
      SCREEN 2: CAPTURE

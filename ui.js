@@ -470,19 +470,6 @@ const UI = (() => {
     ctx.quadraticCurveTo(cx - r * 0.18, cy - r * 0.18, cx, cy - r);
     ctx.closePath();
   }
-  function drawCapybaraCorner(ctx, x, y, scale, flip) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.scale(flip ? -scale : scale, scale);
-    ctx.fillStyle = '#C99B6B'; ctx.strokeStyle = '#2B2138'; ctx.lineWidth = 1.6 / scale;
-    ctx.beginPath(); ctx.ellipse(0, 14, 22, 13, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.ellipse(-16, 4, 8, 7, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#2B2138';
-    ctx.beginPath(); ctx.arc(-19, 1, 1.3, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(-13, 1, 1.3, 0, Math.PI * 2); ctx.fill();
-    ctx.restore();
-  }
-
   /* ----------------------------------------------------------
      FRAME THEMES
   ---------------------------------------------------------- */
@@ -492,7 +479,6 @@ const UI = (() => {
     { id: 'pastel',      label: 'Pastel',        swatch: '#D7F3E8' },
     { id: 'ribbon',      label: 'Ribbon',        swatch: '#FF7AB3' },
     { id: 'scrapbook',   label: 'Scrapbook',     swatch: '#FFEFC4' },
-    { id: 'capybara',    label: 'Capybara',      swatch: '#C99B6B' },
     { id: 'doodle',      label: 'Doodle',        swatch: '#2B2138' },
     { id: 'heart',       label: 'Heart',         swatch: '#FF6B5B' },
     { id: 'sparkle',     label: 'Sparkle',       swatch: '#7AB8F5' },
@@ -585,28 +571,6 @@ const UI = (() => {
         ctx.strokeRect(x, y, 20 * sc, 20 * sc);
       });
       ctx.setLineDash([]);
-    }
-
-    else if (themeId === 'capybara') {
-      drawCapybaraCorner(ctx, 38 * sc, h - 24 * sc, 0.75 * sc, false);
-      drawCapybaraCorner(ctx, w - 38 * sc, h - 24 * sc, 0.75 * sc, true);
-      ctx.save(); ctx.translate(w / 2, 24 * sc); ctx.scale(0.45 * sc, 0.45 * sc);
-      ctx.fillStyle = '#C99B6B'; ctx.strokeStyle = '#2B2138'; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.ellipse(0, 14, 22, 13, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-      ctx.restore();
-      ctx.strokeStyle = '#7CB87C'; ctx.lineWidth = 2 * sc; ctx.lineCap = 'round';
-      const grassX = [w * 0.12, w * 0.25, w * 0.38, w * 0.62, w * 0.75, w * 0.88];
-      grassX.forEach(gx => {
-        ctx.beginPath(); ctx.moveTo(gx, h); ctx.lineTo(gx - 3 * sc, h - 10 * sc); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(gx + 4 * sc, h); ctx.lineTo(gx + sc, h - 13 * sc); ctx.stroke();
-      });
-      ctx.fillStyle = '#FF9FC4';
-      [[w * 0.2, h - 18 * sc], [w * 0.5, h - 20 * sc], [w * 0.8, h - 18 * sc]].forEach(([fx, fy]) => {
-        ctx.beginPath(); ctx.arc(fx, fy, 4 * sc, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#FFC857';
-        ctx.beginPath(); ctx.arc(fx, fy, 2 * sc, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#FF9FC4';
-      });
     }
 
     else if (themeId === 'doodle') {

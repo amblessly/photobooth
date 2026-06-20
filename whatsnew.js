@@ -22,15 +22,14 @@
   // ── Edit this list for each release — this is the only thing ──
   // you need to change when announcing new features.
   const FEATURES = [
-    'Updated navbar UI for a cleaner look',
-    'Disabled zoom for stable photobooth experience',
-    'Added camera flash effect inside rounded frame',
-    'Added flash toggle button (ON/OFF)',
-    'Removed layout resolution text',
-    'Added new photobooth layouts',
-    'Audio now stops when leaving the page',
-    'Improved performance and UI smoothness',
-    'Improved heart reaction system',
+    'Updated navbar UI',
+    'Added camera flash effect',
+    'Added flash toggle button',
+    'New layouts and strips added',
+    'Fixed audio issue',
+    'Better performance and UI',
+    'Added more stickers',
+    'Added heart reactions',
   ];
 
   const SHOW_DELAY_MS = 1500;

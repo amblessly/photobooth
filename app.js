@@ -431,6 +431,14 @@
   }
 
   function capturePhoto() {
+    // Fire the flash FIRST, before any heavy canvas/pixel work below.
+    // Filters.apply() (especially 'cartoon'/'dream') runs a synchronous
+    // per-pixel loop that can take long enough on mobile CPUs to block
+    // the main thread — if flashEffect() ran after that, the browser
+    // often never got a chance to paint the brief flash at all, so it
+    // looked like flash "didn't work" on phones even though it fired.
+    flashEffect();
+
     const raw = Camera.grabFrame();
     const filtered = Filters.apply(state.filterId, raw);
 
@@ -444,7 +452,6 @@
       state.filteredPhotos.push(filtered);
     }
 
-    flashEffect();
     updateShotsPanel();
   }
 

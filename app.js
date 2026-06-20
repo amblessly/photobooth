@@ -774,9 +774,46 @@
     catch (_) { return []; }
   }
 
+  /**
+   * Persist a gallery list to localStorage. Larger layouts (Film Strip,
+   * 6-Grid, Magazine Cover) produce noticeably bigger PNG data URLs than
+   * Classic Strip, so a gallery that's been fine for months can suddenly
+   * blow past the localStorage quota (usually ~5MB) the moment one of
+   * those is saved. Previously this failed silently (empty catch) — the
+   * new photo would vanish with no error and no toast, exactly the "it
+   * never shows up in the gallery" symptom.
+   *
+   * Now: if the write throws (QuotaExceededError or similar), we drop the
+   * single oldest non-favorited item and retry, repeating until it either
+   * fits or there's truly nothing left to drop. This way a successful
+   * capture+save is never lost — at worst, an old unfavorited strip makes
+   * room for the new one.
+   *
+   * Returns { ok, list } — ok is false only if even an empty/favorites-only
+   * list still won't fit (e.g. localStorage disabled entirely).
+   */
   function saveGalleryList(list) {
-    try { localStorage.setItem(GALLERY_KEY, JSON.stringify(list)); }
-    catch (_) {}
+    let working = list.slice();
+    for (let attempt = 0; attempt < working.length + 1; attempt++) {
+      try {
+        localStorage.setItem(GALLERY_KEY, JSON.stringify(working));
+        return { ok: true, list: working };
+      } catch (err) {
+        // Find the oldest non-favorited item to evict. Gallery is stored
+        // newest-first (via unshift), so the oldest match is the last one
+        // in array order.
+        let evictIdx = -1;
+        for (let i = working.length - 1; i >= 0; i--) {
+          if (!working[i].favorite) { evictIdx = i; break; }
+        }
+        if (evictIdx === -1) {
+          // Nothing left to evict (everything is favorited, or list is empty)
+          return { ok: false, list: working };
+        }
+        working.splice(evictIdx, 1);
+      }
+    }
+    return { ok: false, list: working };
   }
 
   /**
@@ -794,8 +831,15 @@
       favorite: false,
       createdAt: Date.now(),
     });
-    saveGalleryList(list.slice(0, 40)); // keep last 40
+    const trimmed = list.slice(0, 40); // keep last 40
+    const result = saveGalleryList(trimmed);
     renderGalleryBadge();
+    if (!result.ok) {
+      UI.showToast("Couldn't save to gallery — storage is full. Try downloading it instead.");
+    } else if (result.list.length < trimmed.length) {
+      UI.showToast('Saved to gallery (older strips were removed to make room)');
+    }
+    return result.ok;
   }
 
   function renderGalleryBadge() {

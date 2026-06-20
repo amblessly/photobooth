@@ -42,25 +42,11 @@ const Camera = (() => {
 
   /** Build a constraints object for a given resolution tier. Prefers an
    *  explicit deviceId (desktop multi-webcam case) over facingMode when
-   *  one has been selected via selectDevice().
-   *
-   *  Note on width/height/aspectRatio: we only set `width` as an exact
-   *  resolution target and let `aspectRatio` stay a soft `ideal` hint —
-   *  we deliberately do NOT also pin an exact `height`. Forcing both
-   *  width.ideal AND height.ideal to a fixed landscape pair (e.g. our
-   *  16:9 ladder tiers) when the device's real camera sensor is a
-   *  different native aspect (commonly 4:3 on phones) makes some
-   *  Android browser/driver combos non-uniformly SCALE the sensor
-   *  output to hit that exact pair instead of cropping to it — which
-   *  is exactly what produces a visibly "stretched" capture. Letting
-   *  aspectRatio stay a hint (not exact) lets the UA pick the closest
-   *  native mode and keeps actual pixels undistorted; any leftover
-   *  aspect mismatch is then handled by CSS object-fit: cover (crop,
-   *  never stretch) and by drawCoveredImage() at capture/export time. */
+   *  one has been selected via selectDevice(). */
   function buildConstraints(tier) {
     const video = {
       width: { ideal: tier.width },
-      aspectRatio: { ideal: tier.width / tier.height },
+      height: { ideal: tier.height },
     };
     if (activeDeviceId) {
       video.deviceId = { exact: activeDeviceId };

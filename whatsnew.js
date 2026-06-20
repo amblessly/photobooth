@@ -23,8 +23,8 @@
   // you need to change when announcing new features.
   const FEATURES = [
     'Updated navbar UI',
-    'Added camera flash effect',
-    'Added flash toggle button',
+    'Added camera flash effect - fixing',
+    'Added flash toggle button - fixing',
     'New layouts and strips added',
     'Fixed audio issue',
     'Better performance and UI',

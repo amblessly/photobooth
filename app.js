@@ -511,8 +511,7 @@
   function renderDecorateStage() {
     el.decorateStage.innerHTML = '';
     const layout = UI.getLayout(state.layoutId);
-    // Always use the canonical export dimensions
-    const { w, h } = UI.getExportSize(state.layoutId, state.shotCount);
+    const { w, h } = layout.size(state.shotCount);
 
     decorateBaseCanvas = document.createElement('canvas');
     decorateBaseCanvas.width = w;
@@ -525,26 +524,15 @@
 
     el.decorateStage.appendChild(decorateBaseCanvas);
 
-    // Scale canvas DOWN for display only — never resample pixels
     const isMobile = window.innerWidth <= 880;
-    const maxDisplayW = isMobile
+    const maxW = isMobile
       ? Math.min(w, window.innerWidth - 32)
-      : Math.min(520, window.innerWidth - 64);
-    const maxDisplayH = isMobile
-      ? window.innerHeight * 0.55
-      : window.innerHeight * 0.75;
-    const scaleW = maxDisplayW / w;
-    const scaleH = maxDisplayH / h;
-    const displayScale = Math.min(1, scaleW, scaleH);
-
-    const displayW = Math.round(w * displayScale);
-    const displayH = Math.round(h * displayScale);
-    decorateBaseCanvas.style.width = displayW + 'px';
-    decorateBaseCanvas.style.height = displayH + 'px';
-    el.decorateStage.style.width = displayW + 'px';
-    el.decorateStage.style.height = displayH + 'px';
-
-    // Scale factor: how many export pixels per display CSS pixel
+      : Math.min(480, window.innerWidth - 64);
+    const displayScale = Math.min(1, maxW / w);
+    decorateBaseCanvas.style.width = (w * displayScale) + 'px';
+    decorateBaseCanvas.style.height = (h * displayScale) + 'px';
+    el.decorateStage.style.width = (w * displayScale) + 'px';
+    el.decorateStage.style.height = (h * displayScale) + 'px';
     decorateScaleFactor = 1 / displayScale;
 
     editor = UI.createEditor(el.decorateStage);
@@ -672,19 +660,9 @@
   ---------------------------------------------------------- */
   async function renderExportCanvas(layerSnapshots) {
     const layout = UI.getLayout(state.layoutId);
-    // Authoritative export size — must match exactly
-    const { w, h } = UI.getExportSize(state.layoutId, state.shotCount);
-
+    const { w, h } = layout.size(state.shotCount);
     el.exportCanvas.width = w;
     el.exportCanvas.height = h;
-
-    // Scale the canvas element for on-screen display while keeping pixel data intact
-    const maxDisplayW = Math.min(w, window.innerWidth - 48);
-    const maxDisplayH = Math.min(h, window.innerHeight * 0.65);
-    const dispScale = Math.min(1, maxDisplayW / w, maxDisplayH / h);
-    el.exportCanvas.style.width = Math.round(w * dispScale) + 'px';
-    el.exportCanvas.style.height = Math.round(h * dispScale) + 'px';
-
     const ctx = el.exportCanvas.getContext('2d');
     layout.draw(ctx, state.filteredPhotos, {
       frameColor: state.frameColor, textColor: state.textColor, banner: state.banner,
@@ -695,7 +673,6 @@
       await UI.bakeSnapshots(ctx, layerSnapshots, decorateScaleFactor);
     }
 
-    // Save to gallery — include layout metadata for proper display
     saveToGallery(el.exportCanvas.toDataURL('image/png'), {
       layoutId: state.layoutId,
       exportW: w,

@@ -63,73 +63,54 @@ const UI = (() => {
   ---------------------------------------------------------- */
   const LAYOUTS = {
 
-    // ── Classic Strip — 1200 × 1800 ──────────────────────────
+    // ── Classic Strip — 480px wide, dynamic height ───────────
     strip: {
       id: 'strip',
       name: 'Classic Strip',
       desc: 'Vertical 3–4 shot strip',
       defaultShots: 3,
       minShots: 3, maxShots: 4,
-      exportW: 1200, exportH: 1800,
-      // Target aspect ratio (w/h) for each individual photo, matched to the
-      // original Classic Strip look — each photo reads as a clear portrait
-      // headshot rather than a flat landscape sliver. Full-bleed width would
-      // force a ~2.18 ratio (very flat) at 3 shots; instead each photo is
-      // centered and narrower so it keeps this ratio regardless of shot count.
-      PHOTO_RATIO: 1.35,
+      exportW: 480, exportH: 1800, // exportH is approximate; real h is computed by size()
       size(shotCount) {
-        const w = 1200;
-        const h = 1800;
-        const padding = 70;
-        const gap = 40;
-        const bannerH = 120;
-        // Available height first, same as before — this is what actually
-        // fits 3-4 photos stacked in the fixed canvas.
-        const totalGaps = (shotCount - 1) * gap;
-        const photoH = Math.floor((h - padding * 2 - totalGaps - bannerH) / shotCount);
-        // Photo width is now driven by the target ratio, not by "fill all
-        // available width" — this is what keeps each photo from looking
-        // flattened. It's centered within the full padded width, with the
-        // leftover split evenly as a side margin.
-        const maxW = w - padding * 2;
-        const photoW = Math.min(maxW, Math.round(photoH * this.PHOTO_RATIO));
-        const sideMargin = Math.round((maxW - photoW) / 2);
-        return { w, h, photoH, photoW, padding, sideMargin, gap, bannerH };
+        const w = 480;
+        const padding = 28;
+        const photoH = (w - padding * 2) * 0.74;
+        const h = padding * 2 + shotCount * photoH + (shotCount - 1) * 16 + 70;
+        return { w, h: Math.round(h), photoH, padding };
       },
       draw(ctx, photos, opts) {
-        const { w, h, photoH, photoW, padding, sideMargin, gap } = this.size(photos.length);
-        const x = padding + sideMargin;
+        const { w, h, photoH, padding } = this.size(photos.length);
         ctx.fillStyle = opts.frameColor || '#FFFFFF';
-        roundRect(ctx, 0, 0, w, h, 60);
+        roundRect(ctx, 0, 0, w, h, 26);
         ctx.fill();
 
         let y = padding;
         photos.forEach((p, i) => {
           if (p) {
-            drawCoveredImage(ctx, p, x, y, photoW, photoH, 24);
+            drawCoveredImage(ctx, p, padding, y, w - padding * 2, photoH, 10);
           } else {
             ctx.save();
             ctx.fillStyle = '#F0E8DC';
-            roundRect(ctx, x, y, photoW, photoH, 24);
+            roundRect(ctx, padding, y, w - padding * 2, photoH, 10);
             ctx.fill();
             ctx.fillStyle = '#B0A0C0';
-            ctx.font = '600 48px "Baloo 2", sans-serif';
+            ctx.font = '600 18px "Baloo 2", sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(`Photo ${i + 1}`, w / 2, y + photoH / 2);
             ctx.restore();
           }
-          y += photoH + gap;
+          y += photoH + 16;
         });
 
         drawSprockets(ctx, w, h, padding);
 
         if (opts.banner) {
           ctx.fillStyle = opts.textColor || '#2B2138';
-          ctx.font = '600 56px "Baloo 2", sans-serif';
+          ctx.font = '600 22px "Baloo 2", sans-serif';
           ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(opts.banner, w / 2, h - padding / 2 - 10);
+          ctx.textBaseline = 'alphabetic';
+          ctx.fillText(opts.banner, w / 2, h - 24);
         }
       },
     },
@@ -419,8 +400,8 @@ const UI = (() => {
     const count = shotCount || layout.defaultShots;
     switch (layout.id) {
       case 'strip': {
-        const { photoW, photoH } = layout.size(count);
-        return photoW / photoH;
+        const { w, photoH, padding } = layout.size(count);
+        return (w - padding * 2) / photoH;
       }
       case 'filmstrip': {
         const { photoW, photoH } = layout.size(count);

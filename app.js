@@ -198,10 +198,10 @@
         <rect x="14" y="10" width="36" height="32" rx="2" fill="#FFD9CF"/></svg>`;
     }
     if (id === 'filmstrip') {
-      return `<svg width="64" height="64" viewBox="0 0 64 64"><rect x="6" y="6" width="52" height="52" rx="6" fill="#FFF6EC" stroke="${stroke}" stroke-width="2"/>
-        <rect x="12" y="16" width="18" height="18" rx="2" fill="#FFD9CF"/><rect x="34" y="16" width="18" height="18" rx="2" fill="#D7F3E8"/><rect x="12" y="38" width="18" height="18" rx="2" fill="#DCEBFC"/><rect x="34" y="38" width="18" height="18" rx="2" fill="#FFEFC4"/>
-        <circle cx="14" cy="9" r="1.6" fill="${stroke}" opacity=".35"/><circle cx="24" cy="9" r="1.6" fill="${stroke}" opacity=".35"/><circle cx="34" cy="9" r="1.6" fill="${stroke}" opacity=".35"/><circle cx="44" cy="9" r="1.6" fill="${stroke}" opacity=".35"/><circle cx="54" cy="9" r="1.6" fill="${stroke}" opacity=".35"/>
-        <circle cx="14" cy="59" r="1.6" fill="${stroke}" opacity=".35"/><circle cx="24" cy="59" r="1.6" fill="${stroke}" opacity=".35"/><circle cx="34" cy="59" r="1.6" fill="${stroke}" opacity=".35"/><circle cx="44" cy="59" r="1.6" fill="${stroke}" opacity=".35"/><circle cx="54" cy="59" r="1.6" fill="${stroke}" opacity=".35"/></svg>`;
+      return `<svg width="64" height="64" viewBox="0 0 64 64"><rect x="2" y="14" width="60" height="36" rx="6" fill="#1C1620"/>
+        <rect x="8" y="21" width="13" height="13" rx="2" fill="#FFD9CF"/><rect x="24" y="21" width="13" height="13" rx="2" fill="#D7F3E8"/><rect x="40" y="21" width="13" height="13" rx="2" fill="#DCEBFC"/>
+        <rect x="5" y="16" width="6" height="4" rx="1" fill="#F5EFE2" opacity=".8"/><rect x="15" y="16" width="6" height="4" rx="1" fill="#F5EFE2" opacity=".8"/><rect x="25" y="16" width="6" height="4" rx="1" fill="#F5EFE2" opacity=".8"/><rect x="35" y="16" width="6" height="4" rx="1" fill="#F5EFE2" opacity=".8"/><rect x="45" y="16" width="6" height="4" rx="1" fill="#F5EFE2" opacity=".8"/><rect x="55" y="16" width="4" height="4" rx="1" fill="#F5EFE2" opacity=".8"/>
+        <rect x="5" y="44" width="6" height="4" rx="1" fill="#F5EFE2" opacity=".8"/><rect x="15" y="44" width="6" height="4" rx="1" fill="#F5EFE2" opacity=".8"/><rect x="25" y="44" width="6" height="4" rx="1" fill="#F5EFE2" opacity=".8"/><rect x="35" y="44" width="6" height="4" rx="1" fill="#F5EFE2" opacity=".8"/><rect x="45" y="44" width="6" height="4" rx="1" fill="#F5EFE2" opacity=".8"/><rect x="55" y="44" width="4" height="4" rx="1" fill="#F5EFE2" opacity=".8"/></svg>`;
     }
     if (id === 'grid6') {
       return `<svg width="64" height="64" viewBox="0 0 64 64"><rect x="6" y="4" width="52" height="56" rx="6" fill="#FFF6EC" stroke="${stroke}" stroke-width="2"/>

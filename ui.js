@@ -5,7 +5,7 @@
      Classic Strip   → 1200 × 1800
      4-Grid Collage  → 1200 × 1200
      Polaroid Style  → 1200 × 1500
-     Film Strip      → 1500 × 1500 (2x2 grid, sprocket-hole frame)
+     Film Strip      → dynamic width (scales with shot count) × ~1010, square photo slots, sprocket-hole frame
      6-Grid Collage  → 1200 × 1800
      Magazine Cover  → 1200 × 1500
    ============================================================ */
@@ -212,80 +212,77 @@ const UI = (() => {
       },
     },
 
-    // ── Film Strip — 2x2 square grid, sprocket-hole framing ──
-    // Was 1800x1200 horizontal (4 photos in a row) — looked stretched/
-    // elongated. Now a square 1500x1500 canvas with photos arranged in
-    // a 2x2 grid, square cells, sprocket holes still running along the
-    // top and bottom edges so it keeps its "film strip" identity.
+    // ── Film Strip — classic horizontal strip, sprocket holes ──
+    // Restored from the original design: near-black film body, photos
+    // in a single horizontal row with sprocket holes running along the
+    // top and bottom bands. Difference from the original: each photo
+    // slot is now SQUARE (1x1) instead of 220x189, and all dimensions
+    // are scaled up to real export resolution (the original's numbers
+    // were display-scale, far too small to export cleanly).
     filmstrip: {
       id: 'filmstrip',
       name: 'Film Strip',
-      desc: '2x2 grid with sprocket-hole frame',
+      desc: 'Horizontal strip with sprocket holes',
       defaultShots: 4,
       minShots: 3, maxShots: 4,
-      exportW: 1500, exportH: 1500,
+      exportW: 2160, exportH: 720, // approximate (4 shots); real w/h is computed by size()
       size(shotCount) {
-        const w = 1500, h = 1500;
-        const padding = 60, gap = 28;
-        const sprocketMargin = 70; // clear band top+bottom reserved for sprocket holes
-        const gridTop = sprocketMargin;
-        const gridBottom = h - sprocketMargin;
-        const gridH = gridBottom - gridTop;
-        const cols = shotCount <= 2 ? shotCount : 2;
-        const rows = Math.ceil(shotCount / cols);
-        const cell = Math.floor(Math.min(
-          (w - padding * 2 - gap * (cols - 1)) / cols,
-          (gridH - gap * (rows - 1)) / rows
-        ));
-        // Center the grid block within the available canvas/band
-        const gridW = cell * cols + gap * (cols - 1);
-        const blockH = cell * rows + gap * (rows - 1);
-        const startX = (w - gridW) / 2;
-        const startY = gridTop + (gridH - blockH) / 2;
-        return { w, h, cell, cols, rows, padding, gap, sprocketMargin, startX, startY };
+        const padding = 70;
+        const sprocketBand = 80;
+        const photoSize = 420; // square (1x1) slot — was 220x189 (non-square) originally
+        const gap = 32;
+        const w = padding * 2 + shotCount * photoSize + (shotCount - 1) * gap;
+        const h = sprocketBand * 2 + photoSize + padding * 2 + 70; // +70 for optional caption band
+        return { w, h, photoSize, padding, sprocketBand, gap };
       },
       draw(ctx, photos, opts) {
-        const { w, h, cell, cols, rows, padding, startX, startY, gap } = this.size(photos.length);
-        ctx.fillStyle = opts.frameColor || '#FFFFFF';
-        roundRect(ctx, 0, 0, w, h, 48);
+        const { w, h, photoSize, padding, sprocketBand, gap } = this.size(photos.length);
+        // Classic film-strip body is near-black; frameColor tints the
+        // sprocket bands so it still responds to the existing color picker.
+        ctx.fillStyle = '#1C1620';
+        roundRect(ctx, 0, 0, w, h, 28);
         ctx.fill();
 
-        const positions = [];
-        for (let row = 0; row < rows; row++) {
-          for (let col = 0; col < cols; col++) {
-            positions.push([startX + col * (cell + gap), startY + row * (cell + gap)]);
-          }
-        }
+        const y = sprocketBand + padding / 2;
         photos.forEach((p, i) => {
-          if (i >= positions.length) return;
-          const [x, y] = positions[i];
+          const x = padding + i * (photoSize + gap);
           if (p) {
-            drawCoveredImage(ctx, p, x, y, cell, cell, 18);
+            drawCoveredImage(ctx, p, x, y, photoSize, photoSize, 10);
           } else {
             ctx.save();
             ctx.fillStyle = '#F0E8DC';
-            roundRect(ctx, x, y, cell, cell, 18);
+            roundRect(ctx, x, y, photoSize, photoSize, 10);
             ctx.fill();
             ctx.fillStyle = '#B0A0C0';
-            ctx.font = '600 36px "Baloo 2", sans-serif';
+            ctx.font = '600 32px "Baloo 2", sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText(`Photo ${i + 1}`, x + cell / 2, y + cell / 2);
+            ctx.fillText(`Photo ${i + 1}`, x + photoSize / 2, y + photoSize / 2);
             ctx.restore();
           }
         });
 
-        drawSprocketsHorizontal(ctx, w, h, padding);
+        // Sprocket holes — top and bottom bands, tinted by frameColor
+        const holeColor = opts.frameColor && opts.frameColor !== '#FFFFFF' ? opts.frameColor : '#F5EFE2';
+        ctx.fillStyle = holeColor;
+        const holeW = 30, holeH = 20, holeGap = 50;
+        const holeCount = Math.floor((w - padding) / holeGap);
+        for (let i = 0; i < holeCount; i++) {
+          const hx = padding / 2 + i * holeGap;
+          roundRect(ctx, hx, (sprocketBand - holeH) / 2, holeW, holeH, 5); ctx.fill();
+          roundRect(ctx, hx, h - sprocketBand + (sprocketBand - holeH) / 2 - 34, holeW, holeH, 5); ctx.fill();
+        }
 
         if (opts.banner) {
-          ctx.fillStyle = opts.textColor || '#2B2138';
-          ctx.font = '600 44px "Baloo 2", sans-serif';
+          ctx.fillStyle = '#F5EFE2';
+          ctx.font = '600 38px "Baloo 2", sans-serif';
           ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(opts.banner, w / 2, h - 36);
+          ctx.textBaseline = 'alphabetic';
+          ctx.fillText(opts.banner, w / 2, h - 26);
         }
       },
     },
+
 
     // ── 6-Grid Collage — 1200 × 1800 ─────────────────────────
     grid6: {

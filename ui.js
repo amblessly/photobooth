@@ -5,7 +5,7 @@
      Classic Strip   → 1200 × 1800
      4-Grid Collage  → 1200 × 1200
      Polaroid Style  → 1200 × 1500
-     Film Strip      → 1800 × 1200
+     Film Strip      → 1500 × 1500 (2x2 grid, sprocket-hole frame)
      6-Grid Collage  → 1200 × 1800
      Magazine Cover  → 1200 × 1500
    ============================================================ */
@@ -212,56 +212,77 @@ const UI = (() => {
       },
     },
 
-    // ── Film Strip — 1800 × 1200 ─────────────────────────────
+    // ── Film Strip — 2x2 square grid, sprocket-hole framing ──
+    // Was 1800x1200 horizontal (4 photos in a row) — looked stretched/
+    // elongated. Now a square 1500x1500 canvas with photos arranged in
+    // a 2x2 grid, square cells, sprocket holes still running along the
+    // top and bottom edges so it keeps its "film strip" identity.
     filmstrip: {
       id: 'filmstrip',
       name: 'Film Strip',
-      desc: 'Horizontal strip with sprocket holes',
+      desc: '2x2 grid with sprocket-hole frame',
       defaultShots: 4,
       minShots: 3, maxShots: 4,
-      exportW: 1800, exportH: 1200,
+      exportW: 1500, exportH: 1500,
       size(shotCount) {
-        const w = 1800, h = 1200;
+        const w = 1500, h = 1500;
         const padding = 60, gap = 28;
-        const topMargin = 80, captionH = 100, bottomMargin = 80;
-        const photoH = h - topMargin - captionH - bottomMargin;
-        const photoW = Math.floor((w - padding * 2 - (shotCount - 1) * gap) / shotCount);
-        return { w, h, photoW, photoH, padding, gap, topMargin, captionH, bottomMargin };
+        const sprocketMargin = 70; // clear band top+bottom reserved for sprocket holes
+        const gridTop = sprocketMargin;
+        const gridBottom = h - sprocketMargin;
+        const gridH = gridBottom - gridTop;
+        const cols = shotCount <= 2 ? shotCount : 2;
+        const rows = Math.ceil(shotCount / cols);
+        const cell = Math.floor(Math.min(
+          (w - padding * 2 - gap * (cols - 1)) / cols,
+          (gridH - gap * (rows - 1)) / rows
+        ));
+        // Center the grid block within the available canvas/band
+        const gridW = cell * cols + gap * (cols - 1);
+        const blockH = cell * rows + gap * (rows - 1);
+        const startX = (w - gridW) / 2;
+        const startY = gridTop + (gridH - blockH) / 2;
+        return { w, h, cell, cols, rows, padding, gap, sprocketMargin, startX, startY };
       },
       draw(ctx, photos, opts) {
-        const { w, h, photoW, photoH, padding, gap, topMargin, captionH } = this.size(photos.length);
+        const { w, h, cell, cols, rows, padding, startX, startY, gap } = this.size(photos.length);
         ctx.fillStyle = opts.frameColor || '#FFFFFF';
-        roundRect(ctx, 0, 0, w, h, 60);
+        roundRect(ctx, 0, 0, w, h, 48);
         ctx.fill();
 
-        let x = padding;
-        const y = topMargin;
+        const positions = [];
+        for (let row = 0; row < rows; row++) {
+          for (let col = 0; col < cols; col++) {
+            positions.push([startX + col * (cell + gap), startY + row * (cell + gap)]);
+          }
+        }
         photos.forEach((p, i) => {
+          if (i >= positions.length) return;
+          const [x, y] = positions[i];
           if (p) {
-            drawCoveredImage(ctx, p, x, y, photoW, photoH, 18);
+            drawCoveredImage(ctx, p, x, y, cell, cell, 18);
           } else {
             ctx.save();
             ctx.fillStyle = '#F0E8DC';
-            roundRect(ctx, x, y, photoW, photoH, 18);
+            roundRect(ctx, x, y, cell, cell, 18);
             ctx.fill();
             ctx.fillStyle = '#B0A0C0';
-            ctx.font = '600 40px "Baloo 2", sans-serif';
+            ctx.font = '600 36px "Baloo 2", sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText(`Photo ${i + 1}`, x + photoW / 2, y + photoH / 2);
+            ctx.fillText(`Photo ${i + 1}`, x + cell / 2, y + cell / 2);
             ctx.restore();
           }
-          x += photoW + gap;
         });
 
         drawSprocketsHorizontal(ctx, w, h, padding);
 
         if (opts.banner) {
           ctx.fillStyle = opts.textColor || '#2B2138';
-          ctx.font = '600 52px "Baloo 2", sans-serif';
+          ctx.font = '600 44px "Baloo 2", sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillText(opts.banner, w / 2, topMargin + photoH + captionH / 2);
+          ctx.fillText(opts.banner, w / 2, h - 36);
         }
       },
     },
@@ -403,10 +424,8 @@ const UI = (() => {
         const { w, photoH, padding } = layout.size(count);
         return (w - padding * 2) / photoH;
       }
-      case 'filmstrip': {
-        const { photoW, photoH } = layout.size(count);
-        return photoW / photoH;
-      }
+      case 'filmstrip':
+        return 1; // square cells, same as the grid layouts
       case 'grid':
       case 'grid6':
         return 1; // square cells

@@ -198,10 +198,10 @@
         <rect x="14" y="10" width="36" height="32" rx="2" fill="#FFD9CF"/></svg>`;
     }
     if (id === 'filmstrip') {
-      return `<svg width="64" height="64" viewBox="0 0 64 64"><rect x="4" y="20" width="56" height="24" rx="4" fill="#FFF6EC" stroke="${stroke}" stroke-width="2"/>
-        <rect x="8" y="24" width="11" height="16" rx="2" fill="#FFD9CF"/><rect x="21" y="24" width="11" height="16" rx="2" fill="#D7F3E8"/><rect x="34" y="24" width="11" height="16" rx="2" fill="#DCEBFC"/><rect x="47" y="24" width="9" height="16" rx="2" fill="#FFEFC4"/>
-        <circle cx="10" cy="14" r="2" fill="${stroke}" opacity=".35"/><circle cx="22" cy="14" r="2" fill="${stroke}" opacity=".35"/><circle cx="34" cy="14" r="2" fill="${stroke}" opacity=".35"/><circle cx="46" cy="14" r="2" fill="${stroke}" opacity=".35"/><circle cx="58" cy="14" r="2" fill="${stroke}" opacity=".35"/>
-        <circle cx="10" cy="50" r="2" fill="${stroke}" opacity=".35"/><circle cx="22" cy="50" r="2" fill="${stroke}" opacity=".35"/><circle cx="34" cy="50" r="2" fill="${stroke}" opacity=".35"/><circle cx="46" cy="50" r="2" fill="${stroke}" opacity=".35"/><circle cx="58" cy="50" r="2" fill="${stroke}" opacity=".35"/></svg>`;
+      return `<svg width="64" height="64" viewBox="0 0 64 64"><rect x="6" y="6" width="52" height="52" rx="6" fill="#FFF6EC" stroke="${stroke}" stroke-width="2"/>
+        <rect x="12" y="16" width="18" height="18" rx="2" fill="#FFD9CF"/><rect x="34" y="16" width="18" height="18" rx="2" fill="#D7F3E8"/><rect x="12" y="38" width="18" height="18" rx="2" fill="#DCEBFC"/><rect x="34" y="38" width="18" height="18" rx="2" fill="#FFEFC4"/>
+        <circle cx="14" cy="9" r="1.6" fill="${stroke}" opacity=".35"/><circle cx="24" cy="9" r="1.6" fill="${stroke}" opacity=".35"/><circle cx="34" cy="9" r="1.6" fill="${stroke}" opacity=".35"/><circle cx="44" cy="9" r="1.6" fill="${stroke}" opacity=".35"/><circle cx="54" cy="9" r="1.6" fill="${stroke}" opacity=".35"/>
+        <circle cx="14" cy="59" r="1.6" fill="${stroke}" opacity=".35"/><circle cx="24" cy="59" r="1.6" fill="${stroke}" opacity=".35"/><circle cx="34" cy="59" r="1.6" fill="${stroke}" opacity=".35"/><circle cx="44" cy="59" r="1.6" fill="${stroke}" opacity=".35"/><circle cx="54" cy="59" r="1.6" fill="${stroke}" opacity=".35"/></svg>`;
     }
     if (id === 'grid6') {
       return `<svg width="64" height="64" viewBox="0 0 64 64"><rect x="6" y="4" width="52" height="56" rx="6" fill="#FFF6EC" stroke="${stroke}" stroke-width="2"/>

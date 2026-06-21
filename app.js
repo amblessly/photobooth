@@ -658,6 +658,31 @@
      Export canvas always matches the layout's canonical size.
      No cropping, stretching, or resampling occurs.
   ---------------------------------------------------------- */
+  /** Gallery copies are stored in localStorage (typically ~5MB total quota).
+   *  A lossless PNG of a large decorated layout (Polaroid/Film Strip/
+   *  6-Grid/Magazine — all 1.8-2.2 megapixels) commonly runs 3-6MB+ on its
+   *  own, blowing the quota every single time regardless of what else is
+   *  in the gallery. Classic Strip and 4-Grid stay under it only because
+   *  they're smaller (≤1.44 megapixels). Saving a high-quality JPEG instead
+   *  (same full resolution, just compressed — photographic content like a
+   *  camera capture compresses 5-10x smaller than PNG) fixes this for every
+   *  layout. This only affects the *gallery* copy: the Export screen's
+   *  Download PNG/JPG buttons still read straight from el.exportCanvas at
+   *  full lossless quality, untouched by this.
+   *  JPEG has no alpha channel, so we composite onto white first — same
+   *  approach already used by the Download JPG button below — otherwise
+   *  the canvas's transparent rounded corners would turn black. */
+  function canvasToGalleryDataUrl(canvas, quality = 0.86) {
+    const tmp = document.createElement('canvas');
+    tmp.width = canvas.width;
+    tmp.height = canvas.height;
+    const tctx = tmp.getContext('2d');
+    tctx.fillStyle = '#FFFFFF';
+    tctx.fillRect(0, 0, tmp.width, tmp.height);
+    tctx.drawImage(canvas, 0, 0);
+    return tmp.toDataURL('image/jpeg', quality);
+  }
+
   async function renderExportCanvas(layerSnapshots) {
     const layout = UI.getLayout(state.layoutId);
     const { w, h } = layout.size(state.shotCount);
@@ -673,7 +698,7 @@
       await UI.bakeSnapshots(ctx, layerSnapshots, decorateScaleFactor);
     }
 
-    saveToGallery(el.exportCanvas.toDataURL('image/png'), {
+    saveToGallery(canvasToGalleryDataUrl(el.exportCanvas), {
       layoutId: state.layoutId,
       exportW: w,
       exportH: h,
@@ -895,7 +920,7 @@
         </div>
       `;
       card.querySelector('[data-action="fav"]').addEventListener('click', (e) => { e.stopPropagation(); toggleFavorite(item.id); });
-      card.querySelector('[data-action="download"]').addEventListener('click', (e) => { e.stopPropagation(); download(`snapcrate-${item.layoutId || 'strip'}-${item.id}.png`, item.dataUrl); });
+      card.querySelector('[data-action="download"]').addEventListener('click', (e) => { e.stopPropagation(); download(`snapcrate-${item.layoutId || 'strip'}-${item.id}.jpg`, item.dataUrl); });
       card.querySelector('[data-action="delete"]').addEventListener('click', (e) => { e.stopPropagation(); deletePhoto(item.id); });
       el.galleryGrid.appendChild(card);
     });

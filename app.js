@@ -784,22 +784,30 @@
    * Returns { ok, list } — ok is false only if even an empty/favorites-only
    * list still won't fit (e.g. localStorage disabled entirely).
    */
-  function saveGalleryList(list) {
+  function saveGalleryList(list, protectId) {
     let working = list.slice();
     for (let attempt = 0; attempt < working.length + 1; attempt++) {
       try {
         localStorage.setItem(GALLERY_KEY, JSON.stringify(working));
         return { ok: true, list: working };
       } catch (err) {
-        // Find the oldest non-favorited item to evict. Gallery is stored
-        // newest-first (via unshift), so the oldest match is the last one
-        // in array order.
+        // Find the oldest evictable item to make room: skip favorites AND
+        // skip protectId — the strip actually being saved right now. Without
+        // this guard, a big layout (Polaroid/Film Strip/6-Grid/Magazine)
+        // could end up evicting *itself* during this same loop, and the
+        // caller would have no way to tell — every remaining write attempt
+        // afterward succeeds (the list is now smaller), so it looks like a
+        // normal "made room by trimming old strips" success even though the
+        // strip the user just made is the one that got dropped. Gallery is
+        // stored newest-first (via unshift), so the oldest evictable match
+        // is the last one in array order.
         let evictIdx = -1;
         for (let i = working.length - 1; i >= 0; i--) {
-          if (!working[i].favorite) { evictIdx = i; break; }
+          if (!working[i].favorite && working[i].id !== protectId) { evictIdx = i; break; }
         }
         if (evictIdx === -1) {
-          // Nothing left to evict (everything is favorited, or list is empty)
+          // Nothing left to evict without touching favorites or the new
+          // strip itself — genuinely out of room.
           return { ok: false, list: working };
         }
         working.splice(evictIdx, 1);
@@ -814,8 +822,9 @@
    */
   function saveToGallery(dataUrl, meta = {}) {
     const list = loadGallery();
+    const newId = 'g_' + Date.now();
     list.unshift({
-      id: 'g_' + Date.now(),
+      id: newId,
       dataUrl,
       layoutId: meta.layoutId || 'strip',
       exportW: meta.exportW || 1200,
@@ -824,14 +833,18 @@
       createdAt: Date.now(),
     });
     const trimmed = list.slice(0, 40); // keep last 40
-    const result = saveGalleryList(trimmed);
+    const result = saveGalleryList(trimmed, newId);
     renderGalleryBadge();
-    if (!result.ok) {
+    // Don't trust result.ok alone — confirm the strip we actually came here
+    // to save is still in the persisted list, not just that *some* write
+    // succeeded (an eviction loop can "succeed" after dropping the new item).
+    const savedOk = result.ok && result.list.some(item => item.id === newId);
+    if (!savedOk) {
       UI.showToast("Couldn't save to gallery — storage is full. Try downloading it instead.");
     } else if (result.list.length < trimmed.length) {
       UI.showToast('Saved to gallery (older strips were removed to make room)');
     }
-    return result.ok;
+    return savedOk;
   }
 
   function renderGalleryBadge() {

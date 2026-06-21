@@ -237,9 +237,11 @@ const UI = (() => {
       },
       draw(ctx, photos, opts) {
         const { w, h, photoSize, padding, sprocketBand, gap } = this.size(photos.length);
-        // Classic film-strip body is near-black; frameColor tints the
-        // sprocket bands so it still responds to the existing color picker.
-        ctx.fillStyle = '#1C1620';
+        // Frame body now follows the Frame Color picker, same as every
+        // other layout — defaults to the classic near-black film look
+        // when no color has been chosen yet.
+        const frameColor = opts.frameColor || '#1C1620';
+        ctx.fillStyle = frameColor;
         roundRect(ctx, 0, 0, w, h, 28);
         ctx.fill();
 
@@ -262,9 +264,11 @@ const UI = (() => {
           }
         });
 
-        // Sprocket holes — top and bottom bands, tinted by frameColor
-        const holeColor = opts.frameColor && opts.frameColor !== '#FFFFFF' ? opts.frameColor : '#F5EFE2';
-        ctx.fillStyle = holeColor;
+        // Sprocket holes — top and bottom bands. Auto-contrast against
+        // whatever frame color is picked: dark holes on a light frame,
+        // light holes on a dark frame, so they stay visible either way.
+        const frameIsLight = isLightColor(frameColor);
+        ctx.fillStyle = frameIsLight ? 'rgba(28,22,32,0.55)' : '#F5EFE2';
         const holeW = 30, holeH = 20, holeGap = 50;
         const holeCount = Math.floor((w - padding) / holeGap);
         for (let i = 0; i < holeCount; i++) {
@@ -274,7 +278,7 @@ const UI = (() => {
         }
 
         if (opts.banner) {
-          ctx.fillStyle = '#F5EFE2';
+          ctx.fillStyle = opts.textColor || (frameIsLight ? '#2B2138' : '#F5EFE2');
           ctx.font = '600 38px "Baloo 2", sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'alphabetic';
@@ -282,7 +286,6 @@ const UI = (() => {
         }
       },
     },
-
 
     // ── 6-Grid Collage — 1200 × 1800 ─────────────────────────
     grid6: {
@@ -443,6 +446,18 @@ const UI = (() => {
   /* ----------------------------------------------------------
      CANVAS DRAW HELPERS
   ---------------------------------------------------------- */
+  /** True if a #RRGGBB color is perceptually light (so dark elements
+   *  drawn on top of it — sprocket holes, banner text — stay readable).
+   *  Standard relative-luminance weighting (matches WCAG's formula shape). */
+  function isLightColor(hex) {
+    if (!hex || hex[0] !== '#' || hex.length < 7) return false;
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.6;
+  }
+
   function roundRect(ctx, x, y, w, h, r) {
     ctx.beginPath();
     ctx.moveTo(x + r, y);

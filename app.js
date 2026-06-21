@@ -3,6 +3,13 @@
    image stickers, rotation, mobile improvements.
    Gallery + export updated: each layout uses its own canonical
    canvas dimensions (no forced uniform sizing).
+
+   BUILD MARKER: gallery-save-hardened-v3
+   (Search for this string in your live deployed app.js to confirm
+   the browser is actually running this file and not a cached/old
+   copy — open DevTools Console and run:
+     fetch('app.js').then(r=>r.text()).then(t=>console.log(t.includes('gallery-save-hardened-v3')))
+   It should print `true`.)
    ============================================================ */
 
 (() => {
@@ -673,36 +680,64 @@
    *  approach already used by the Download JPG button below — otherwise
    *  the canvas's transparent rounded corners would turn black. */
   function canvasToGalleryDataUrl(canvas, quality = 0.86) {
-    const tmp = document.createElement('canvas');
-    tmp.width = canvas.width;
-    tmp.height = canvas.height;
-    const tctx = tmp.getContext('2d');
-    tctx.fillStyle = '#FFFFFF';
-    tctx.fillRect(0, 0, tmp.width, tmp.height);
-    tctx.drawImage(canvas, 0, 0);
-    return tmp.toDataURL('image/jpeg', quality);
+    try {
+      const tmp = document.createElement('canvas');
+      tmp.width = canvas.width;
+      tmp.height = canvas.height;
+      const tctx = tmp.getContext('2d');
+      tctx.fillStyle = '#FFFFFF';
+      tctx.fillRect(0, 0, tmp.width, tmp.height);
+      tctx.drawImage(canvas, 0, 0);
+      return tmp.toDataURL('image/jpeg', quality);
+    } catch (err) {
+      // If JPEG encoding fails for any reason (extremely rare), fall back
+      // to PNG straight off the source canvas rather than throwing and
+      // silently aborting the whole save — large layouts will simply hit
+      // the normal "storage is full" path instead of vanishing outright.
+      console.error('[gallery] JPEG conversion failed, falling back to PNG:', err);
+      try { return canvas.toDataURL('image/png'); } catch (err2) {
+        console.error('[gallery] PNG fallback also failed:', err2);
+        return null;
+      }
+    }
   }
 
   async function renderExportCanvas(layerSnapshots) {
-    const layout = UI.getLayout(state.layoutId);
-    const { w, h } = layout.size(state.shotCount);
-    el.exportCanvas.width = w;
-    el.exportCanvas.height = h;
-    const ctx = el.exportCanvas.getContext('2d');
-    layout.draw(ctx, state.filteredPhotos, {
-      frameColor: state.frameColor, textColor: state.textColor, banner: state.banner,
-    });
-    UI.applyFrameTheme(ctx, state.frameThemeId, w, h);
+    try {
+      const layout = UI.getLayout(state.layoutId);
+      const { w, h } = layout.size(state.shotCount);
+      el.exportCanvas.width = w;
+      el.exportCanvas.height = h;
+      const ctx = el.exportCanvas.getContext('2d');
+      layout.draw(ctx, state.filteredPhotos, {
+        frameColor: state.frameColor, textColor: state.textColor, banner: state.banner,
+      });
+      UI.applyFrameTheme(ctx, state.frameThemeId, w, h);
 
-    if (layerSnapshots && layerSnapshots.length) {
-      await UI.bakeSnapshots(ctx, layerSnapshots, decorateScaleFactor);
+      if (layerSnapshots && layerSnapshots.length) {
+        await UI.bakeSnapshots(ctx, layerSnapshots, decorateScaleFactor);
+      }
+
+      const galleryDataUrl = canvasToGalleryDataUrl(el.exportCanvas);
+      if (!galleryDataUrl) {
+        UI.showToast("Couldn't prepare this strip for the gallery. Try Download instead.");
+        return;
+      }
+
+      saveToGallery(galleryDataUrl, {
+        layoutId: state.layoutId,
+        exportW: w,
+        exportH: h,
+      });
+    } catch (err) {
+      // Nothing in this function used to catch errors — a throw from
+      // layout.draw(), bakeSnapshots(), or the canvas encode would abort
+      // silently here with no toast and nothing in the gallery, while the
+      // export screen still appeared to load fine. That's the "looks
+      // finished but never shows up" symptom. Now it's always visible.
+      console.error('[export] renderExportCanvas failed:', err);
+      UI.showToast("Something went wrong saving this strip. Please try again.");
     }
-
-    saveToGallery(canvasToGalleryDataUrl(el.exportCanvas), {
-      layoutId: state.layoutId,
-      exportW: w,
-      exportH: h,
-    });
   }
 
   function download(filename, dataUrl) {
@@ -816,6 +851,7 @@
         localStorage.setItem(GALLERY_KEY, JSON.stringify(working));
         return { ok: true, list: working };
       } catch (err) {
+        console.warn(`[gallery] write failed (attempt ${attempt}, ${working.length} items, ${JSON.stringify(working).length} bytes):`, err && err.name, err && err.message);
         // Find the oldest evictable item to make room: skip favorites AND
         // skip protectId — the strip actually being saved right now. Without
         // this guard, a big layout (Polaroid/Film Strip/6-Grid/Magazine)

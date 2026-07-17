@@ -1490,7 +1490,7 @@ body.decorate-fullscreen .decorate-fullscreen-btn {
 }
 @media (max-width: 880px) {
   .camera-stage {
-    aspect-ratio: 9 / 16 !important;
+    aspect-ratio: 1 / 1 !important;
     height: auto;
     width: 100%;
     max-height: none;

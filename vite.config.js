@@ -80,6 +80,7 @@ function cleanUrls() {
 }
 
 export default defineConfig({
+  base: './',
   plugins: [cleanUrls(), tailwindcss()],
   server: {
     host: true,

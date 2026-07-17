@@ -1,6 +1,8 @@
 {
   "rewrites": [
     { "source": "/booth", "destination": "/booth/index.html" },
-    { "source": "/start", "destination": "/start/index.html" }
+    { "source": "/booth/", "destination": "/booth/index.html" },
+    { "source": "/start", "destination": "/start/index.html" },
+    { "source": "/start/", "destination": "/start/index.html" }
   ]
 }

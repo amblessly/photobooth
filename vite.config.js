@@ -118,8 +118,9 @@ function prettyUrls() {
       const path = await import('path');
       const dist = resolve(__dirname, 'dist');
       const moves = [
-        ['start.html', 'start/index.html'],
         ['index.html', 'booth/index.html'],
+        ['landing.html', 'index.html'],
+        ['start.html', 'start/index.html'],
       ];
       for (const [from, to] of moves) {
         const src = path.join(dist, from);

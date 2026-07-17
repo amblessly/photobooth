@@ -61,86 +61,75 @@ const UI = (() => {
      The decorate stage and export canvas always use these full-res dimensions;
      visual scaling for display is handled via CSS only (never resampling pixels).
   ---------------------------------------------------------- */
-  const LAYOUTS = {
+  // ── LAYOUT FACTORY HELPERS ──────────────────────────────────────
+  // Each base type (strip / grid / polaroid) has a shared draw function.
+  // Variants are lightweight objects that reference the same draw logic
+  // but differ in id, name, desc, and built-in frameStyle decoration.
 
-    // ── Classic Strip — 480px wide, dynamic height ───────────
-    strip: {
-      id: 'strip',
-      name: 'Classic Strip',
-      desc: 'Vertical 3–4 shot strip',
-      defaultShots: 3,
-      minShots: 3, maxShots: 4,
-      exportW: 480, exportH: 1800, // exportH is approximate; real h is computed by size()
+  function _makeStrip(id, name, desc, frameStyle) {
+    return {
+      id, name, desc, frameStyle,
+      defaultShots: 3, minShots: 3, maxShots: 3,
+      exportW: 480, exportH: 1800,
       size(shotCount) {
-        const w = 480;
-        const padding = 28;
+        const count = shotCount || this.defaultShots;
+        const w = 480, padding = 28;
         const photoH = (w - padding * 2) * 0.74;
-        const h = padding * 2 + shotCount * photoH + (shotCount - 1) * 16 + 70;
+        const h = padding * 2 + count * photoH + (count - 1) * 16 + 70;
         return { w, h: Math.round(h), photoH, padding };
       },
       draw(ctx, photos, opts) {
-        const { w, h, photoH, padding } = this.size(photos.length);
+        const slotCount = this.defaultShots;
+        const slots = photos.slice(0, slotCount);
+        while (slots.length < slotCount) slots.push(null);
+        const { w, h, photoH, padding } = this.size(slotCount);
         ctx.fillStyle = opts.frameColor || '#FFFFFF';
-        roundRect(ctx, 0, 0, w, h, 26);
-        ctx.fill();
-
+        roundRect(ctx, 0, 0, w, h, 26); ctx.fill();
         let y = padding;
-        photos.forEach((p, i) => {
+        slots.forEach((p, i) => {
           if (p) {
             drawCoveredImage(ctx, p, padding, y, w - padding * 2, photoH, 10);
           } else {
             ctx.save();
             ctx.fillStyle = '#F0E8DC';
-            roundRect(ctx, padding, y, w - padding * 2, photoH, 10);
-            ctx.fill();
+            roundRect(ctx, padding, y, w - padding * 2, photoH, 10); ctx.fill();
             ctx.fillStyle = '#B0A0C0';
             ctx.font = '600 18px "Baloo 2", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             ctx.fillText(`Photo ${i + 1}`, w / 2, y + photoH / 2);
             ctx.restore();
           }
           y += photoH + 16;
         });
-
         drawSprockets(ctx, w, h, padding);
-
         if (opts.banner) {
           ctx.fillStyle = opts.textColor || '#2B2138';
           ctx.font = '600 22px "Baloo 2", sans-serif';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'alphabetic';
+          ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
           ctx.fillText(opts.banner, w / 2, h - 24);
         }
+        applyLayoutFrameStyle(ctx, this.frameStyle, w, h);
       },
-    },
+    };
+  }
 
-    // ── 4-Grid Collage — 1200 × 1200 ─────────────────────────
-    grid: {
-      id: 'grid',
-      name: '4-Grid Collage',
-      desc: 'Square 2x2 collage',
-      defaultShots: 4,
-      minShots: 4, maxShots: 4,
+  function _makeGrid(id, name, desc, frameStyle) {
+    return {
+      id, name, desc, frameStyle,
+      defaultShots: 4, minShots: 4, maxShots: 4,
       exportW: 1200, exportH: 1200,
       size() {
-        const w = 1200, h = 1200;
-        const padding = 60, gap = 32;
+        const w = 1200, h = 1200, padding = 60, gap = 32;
         const cell = Math.floor((w - padding * 2 - gap) / 2);
-        const bannerH = Math.round(h - padding * 2 - cell * 2 - gap);
-        return { w, h, cell, padding, gap, bannerH };
+        return { w, h, cell, padding, gap };
       },
       draw(ctx, photos, opts) {
         const { w, h, cell, padding, gap } = this.size();
         ctx.fillStyle = opts.frameColor || '#FFFFFF';
-        roundRect(ctx, 0, 0, w, h, 60);
-        ctx.fill();
-
+        roundRect(ctx, 0, 0, w, h, 60); ctx.fill();
         const positions = [
-          [padding, padding],
-          [padding + cell + gap, padding],
-          [padding, padding + cell + gap],
-          [padding + cell + gap, padding + cell + gap],
+          [padding, padding], [padding + cell + gap, padding],
+          [padding, padding + cell + gap], [padding + cell + gap, padding + cell + gap],
         ];
         photos.slice(0, 4).forEach((p, i) => {
           const [x, y] = positions[i];
@@ -149,257 +138,232 @@ const UI = (() => {
           } else {
             ctx.save();
             ctx.fillStyle = '#F0E8DC';
-            roundRect(ctx, x, y, cell, cell, 28);
-            ctx.fill();
+            roundRect(ctx, x, y, cell, cell, 28); ctx.fill();
             ctx.fillStyle = '#B0A0C0';
             ctx.font = '600 40px "Baloo 2", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             ctx.fillText(`Photo ${i + 1}`, x + cell / 2, y + cell / 2);
             ctx.restore();
           }
         });
-
         if (opts.banner) {
           ctx.fillStyle = opts.textColor || '#2B2138';
           ctx.font = '600 60px "Baloo 2", sans-serif';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
           ctx.fillText(opts.banner, w / 2, h - padding / 2);
         }
+        applyLayoutFrameStyle(ctx, this.frameStyle, w, h);
       },
-    },
+    };
+  }
 
-    // ── Polaroid Style — 1200 × 1500 ─────────────────────────
-    polaroid: {
-      id: 'polaroid',
-      name: 'Polaroid Style',
-      desc: 'Single frame, thick bottom border',
-      defaultShots: 1,
-      minShots: 1, maxShots: 1,
-      exportW: 1200, exportH: 1500,
+  function _makePolaroid(id, name, desc, frameStyle, shots) {
+    const shotCount = shots || 1;
+    return {
+      id, name, desc, frameStyle,
+      defaultShots: shotCount, minShots: shotCount, maxShots: shotCount,
+      exportW: 1200, exportH: shotCount === 2 ? 2400 : 1500,
       size() {
-        const w = 1200, h = 1500;
-        const padding = 56;
-        const photoH = 1080;
-        return { w, h, photoH, padding };
+        if (shotCount === 2) {
+          // Two stacked polaroid frames
+          const w = 1200, padding = 56, gap = 40;
+          const photoH = 860;
+          const frameH = padding + photoH + 80; // photo + caption area per frame
+          const h = frameH * 2 + gap;
+          return { w, h, photoH, padding, gap, frameH };
+        }
+        return { w: 1200, h: 1500, photoH: 1080, padding: 56 };
       },
       draw(ctx, photos, opts) {
+        if (shotCount === 2) {
+          const { w, h, photoH, padding, gap, frameH } = this.size();
+          ctx.fillStyle = opts.frameColor || '#FFFFFF';
+          roundRect(ctx, 0, 0, w, h, 24); ctx.fill();
+
+          [0, 1].forEach(i => {
+            const yOff = i * (frameH + gap);
+            const photo = photos[i] || null;
+            ctx.save();
+            ctx.shadowColor = 'rgba(0,0,0,.15)'; ctx.shadowBlur = 16;
+            if (photo) {
+              drawCoveredImage(ctx, photo, padding, yOff + padding, w - padding * 2, photoH, 10);
+            } else {
+              ctx.fillStyle = '#F0E8DC';
+              roundRect(ctx, padding, yOff + padding, w - padding * 2, photoH, 10); ctx.fill();
+              ctx.fillStyle = '#B0A0C0';
+              ctx.font = '600 52px "Baloo 2", sans-serif';
+              ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+              ctx.fillText(`Photo ${i + 1}`, w / 2, yOff + padding + photoH / 2);
+            }
+            ctx.restore();
+            // per-frame caption area
+            if (opts.banner) {
+              ctx.fillStyle = opts.textColor || '#2B2138';
+              ctx.font = '600 52px "Baloo 2", cursive';
+              ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+              ctx.fillText(opts.banner.slice(0, 30), w / 2, yOff + padding + photoH + (frameH - padding - photoH) / 2);
+            }
+          });
+          applyLayoutFrameStyle(ctx, this.frameStyle, w, h);
+          return;
+        }
+
+        // ── Single polaroid ──
         const { w, h, photoH, padding } = this.size();
         ctx.fillStyle = opts.frameColor || '#FFFFFF';
-        roundRect(ctx, 0, 0, w, h, 24);
-        ctx.fill();
+        roundRect(ctx, 0, 0, w, h, 24); ctx.fill();
         ctx.save();
-        ctx.shadowColor = 'rgba(0,0,0,.15)';
-        ctx.shadowBlur = 24;
+        ctx.shadowColor = 'rgba(0,0,0,.15)'; ctx.shadowBlur = 24;
         if (photos[0]) {
           drawCoveredImage(ctx, photos[0], padding, padding, w - padding * 2, photoH, 10);
         } else {
           ctx.fillStyle = '#F0E8DC';
-          roundRect(ctx, padding, padding, w - padding * 2, photoH, 10);
-          ctx.fill();
+          roundRect(ctx, padding, padding, w - padding * 2, photoH, 10); ctx.fill();
         }
         ctx.restore();
-
         const caption = (opts.banner || '').trim();
         if (caption) {
           ctx.fillStyle = opts.textColor || '#2B2138';
           ctx.font = '600 72px "Baloo 2", cursive';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
           ctx.fillText(caption.slice(0, 30), w / 2, padding + photoH + (h - padding - photoH) / 2);
         }
+        applyLayoutFrameStyle(ctx, this.frameStyle, w, h);
       },
-    },
+    };
+  }
 
-    // ── Film Strip — classic horizontal strip, sprocket holes ──
-    // Restored from the original design: near-black film body, photos
-    // in a single horizontal row with sprocket holes running along the
-    // top and bottom bands. Difference from the original: each photo
-    // slot is now SQUARE (1x1) instead of 220x189, and all dimensions
-    // are scaled up to real export resolution (the original's numbers
-    // were display-scale, far too small to export cleanly).
-    filmstrip: {
-      id: 'filmstrip',
-      name: 'Film Strip',
-      desc: 'Horizontal strip with sprocket holes',
-      defaultShots: 4,
-      minShots: 3, maxShots: 4,
-      exportW: 2160, exportH: 720, // approximate (4 shots); real w/h is computed by size()
-      size(shotCount) {
-        const padding = 70;
-        const sprocketBand = 80;
-        const photoSize = 420; // square (1x1) slot — was 220x189 (non-square) originally
-        const gap = 32;
-        const w = padding * 2 + shotCount * photoSize + (shotCount - 1) * gap;
-        const h = sprocketBand * 2 + photoSize + padding * 2 + 70; // +70 for optional caption band
-        return { w, h, photoSize, padding, sprocketBand, gap };
-      },
-      draw(ctx, photos, opts) {
-        const { w, h, photoSize, padding, sprocketBand, gap } = this.size(photos.length);
-        // Frame body now follows the Frame Color picker, same as every
-        // other layout — defaults to the classic near-black film look
-        // when no color has been chosen yet.
-        const frameColor = opts.frameColor || '#1C1620';
-        ctx.fillStyle = frameColor;
-        roundRect(ctx, 0, 0, w, h, 28);
-        ctx.fill();
+  // ── Built-in frame style decorator (baked into each variant's draw) ──
+  // These are DIFFERENT from the user-selectable applyFrameTheme overlays
+  // in the Decorate screen — these define the carousel card's identity/look.
+  // Keeping them separate means both systems work independently.
+  function applyLayoutFrameStyle(ctx, style, w, h) {
+    if (!style || style === 'plain' || style === 'custom') return;
+    ctx.save();
+    ctx.setLineDash([]); ctx.globalAlpha = 1;
+    const sc = Math.min(w, h) / 480;
 
-        const y = sprocketBand + padding / 2;
-        photos.forEach((p, i) => {
-          const x = padding + i * (photoSize + gap);
-          if (p) {
-            drawCoveredImage(ctx, p, x, y, photoSize, photoSize, 10);
-          } else {
-            ctx.save();
-            ctx.fillStyle = '#F0E8DC';
-            roundRect(ctx, x, y, photoSize, photoSize, 10);
-            ctx.fill();
-            ctx.fillStyle = '#B0A0C0';
-            ctx.font = '600 32px "Baloo 2", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(`Photo ${i + 1}`, x + photoSize / 2, y + photoSize / 2);
-            ctx.restore();
-          }
-        });
+    if (style === 'pastel-pink') {
+      ctx.strokeStyle = '#FF9FC4'; ctx.lineWidth = 8 * sc;
+      roundRect(ctx, 4 * sc, 4 * sc, w - 8 * sc, h - 8 * sc, 20 * sc); ctx.stroke();
+      [w * 0.25, w * 0.5, w * 0.75].forEach(x => {
+        pathHeart(ctx, x, 10 * sc, 5 * sc); ctx.fillStyle = '#FF9FC4'; ctx.fill();
+        pathHeart(ctx, x, h - 10 * sc, 5 * sc); ctx.fill();
+      });
+    }
+    else if (style === 'retro-film') {
+      ctx.strokeStyle = '#2B2138'; ctx.lineWidth = 3 * sc;
+      ctx.setLineDash([6 * sc, 4 * sc]);
+      roundRect(ctx, 6 * sc, 6 * sc, w - 12 * sc, h - 12 * sc, 16 * sc); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(43,33,56,0.07)';
+      ctx.fillRect(0, 0, w, 18 * sc);
+      ctx.fillRect(0, h - 18 * sc, w, 18 * sc);
+    }
+    else if (style === 'mint-fresh') {
+      ctx.strokeStyle = '#58C9A3'; ctx.lineWidth = 6 * sc;
+      roundRect(ctx, 4 * sc, 4 * sc, w - 8 * sc, h - 8 * sc, 20 * sc); ctx.stroke();
+      ctx.fillStyle = '#58C9A3';
+      [[10 * sc, 10 * sc], [w - 10 * sc, 10 * sc], [10 * sc, h - 10 * sc], [w - 10 * sc, h - 10 * sc]].forEach(([cx, cy]) => {
+        pathSparkle(ctx, cx, cy, 6 * sc); ctx.fill();
+      });
+    }
+    else if (style === 'golden') {
+      ctx.strokeStyle = '#FFC857'; ctx.lineWidth = 7 * sc;
+      roundRect(ctx, 4 * sc, 4 * sc, w - 8 * sc, h - 8 * sc, 18 * sc); ctx.stroke();
+      ctx.strokeStyle = '#E0A030'; ctx.lineWidth = 2 * sc;
+      roundRect(ctx, 10 * sc, 10 * sc, w - 20 * sc, h - 20 * sc, 14 * sc); ctx.stroke();
+      ctx.fillStyle = '#FFC857';
+      [w * 0.2, w * 0.5, w * 0.8].forEach(x => {
+        pathStar(ctx, x, 12 * sc, 6 * sc, 0); ctx.fill();
+        pathStar(ctx, x, h - 12 * sc, 6 * sc, 0); ctx.fill();
+      });
+    }
+    else if (style === 'sky-blue') {
+      ctx.strokeStyle = '#7AB8F5'; ctx.lineWidth = 6 * sc;
+      roundRect(ctx, 4 * sc, 4 * sc, w - 8 * sc, h - 8 * sc, 22 * sc); ctx.stroke();
+      ctx.fillStyle = '#7AB8F5';
+      const rng = seeded(w * 2 + h * 3);
+      for (let i = 0; i < 6; i++) {
+        const x = (i < 3 ? 10 * sc + rng() * 8 * sc : w - 10 * sc - rng() * 8 * sc);
+        const y = 20 * sc + rng() * (h - 40 * sc);
+        pathSparkle(ctx, x, y, (4 + rng() * 3) * sc); ctx.fill();
+      }
+    }
+    // grid variants
+    else if (style === 'grid-minimal') {
+      ctx.strokeStyle = '#EFE2D0'; ctx.lineWidth = 5 * sc;
+      roundRect(ctx, 4 * sc, 4 * sc, w - 8 * sc, h - 8 * sc, 55 * sc); ctx.stroke();
+    }
+    else if (style === 'grid-party') {
+      const colors2 = ['#FF6B5B','#FFC857','#58C9A3','#7AB8F5'];
+      const rng2 = seeded(w * 5 + h * 11);
+      for (let i = 0; i < 16; i++) {
+        const edge = Math.floor(rng2() * 4);
+        let x2, y2;
+        if (edge === 0)      { x2 = rng2() * w; y2 = 8 * sc + rng2() * 10 * sc; }
+        else if (edge === 1) { x2 = rng2() * w; y2 = h - 8 * sc - rng2() * 10 * sc; }
+        else if (edge === 2) { x2 = 8 * sc + rng2() * 10 * sc; y2 = rng2() * h; }
+        else                 { x2 = w - 8 * sc - rng2() * 10 * sc; y2 = rng2() * h; }
+        ctx.fillStyle = colors2[Math.floor(rng2() * colors2.length)];
+        pathStar(ctx, x2, y2, (5 + rng2() * 4) * sc, rng2() * Math.PI); ctx.fill();
+      }
+    }
+    else if (style === 'grid-dark') {
+      ctx.strokeStyle = '#2B2138'; ctx.lineWidth = 10 * sc;
+      roundRect(ctx, 5 * sc, 5 * sc, w - 10 * sc, h - 10 * sc, 55 * sc); ctx.stroke();
+      ctx.strokeStyle = '#FF6B5B'; ctx.lineWidth = 3 * sc;
+      roundRect(ctx, 14 * sc, 14 * sc, w - 28 * sc, h - 28 * sc, 46 * sc); ctx.stroke();
+    }
+    else if (style === 'grid-floral') {
+      ctx.fillStyle = '#FF9FC4';
+      const spots = [[0,0],[w,0],[0,h],[w,h],[w/2,0],[w/2,h],[0,h/2],[w,h/2]];
+      spots.forEach(([x2,y2]) => { pathHeart(ctx, x2, y2, 14 * sc); ctx.fill(); });
+      ctx.strokeStyle = '#FF9FC4'; ctx.lineWidth = 3 * sc;
+      roundRect(ctx, 4 * sc, 4 * sc, w - 8 * sc, h - 8 * sc, 55 * sc); ctx.stroke();
+    }
+    // polaroid variants
+    else if (style === 'pola-vintage') {
+      ctx.strokeStyle = '#C4A882'; ctx.lineWidth = 10 * sc;
+      roundRect(ctx, 5 * sc, 5 * sc, w - 10 * sc, h - 10 * sc, 20 * sc); ctx.stroke();
+      ctx.fillStyle = 'rgba(196,168,130,0.08)';
+      ctx.fillRect(0, 0, w, h);
+    }
+    else if (style === 'pola-neon') {
+      ['#FF6B5B','#FFC857','#58C9A3'].forEach((c, i) => {
+        ctx.strokeStyle = c; ctx.lineWidth = 4 * sc;
+        roundRect(ctx, (5 + i * 6) * sc, (5 + i * 6) * sc, w - (10 + i * 12) * sc, h - (10 + i * 12) * sc, (20 - i * 2) * sc);
+        ctx.stroke();
+      });
+    }
+    else if (style === 'pola-minimal') {
+      ctx.strokeStyle = '#EFE2D0'; ctx.lineWidth = 16 * sc;
+      roundRect(ctx, 8 * sc, 8 * sc, w - 16 * sc, h - 16 * sc, 16 * sc); ctx.stroke();
+    }
+    else if (style === 'pola-dark') {
+      ctx.strokeStyle = '#2B2138'; ctx.lineWidth = 12 * sc;
+      roundRect(ctx, 6 * sc, 6 * sc, w - 12 * sc, h - 12 * sc, 20 * sc); ctx.stroke();
+      ctx.fillStyle = '#FF6B5B';
+      pathHeart(ctx, w / 2, h - 30 * sc, 10 * sc); ctx.fill();
+    }
 
-        // Sprocket holes — top and bottom bands. Auto-contrast against
-        // whatever frame color is picked: dark holes on a light frame,
-        // light holes on a dark frame, so they stay visible either way.
-        const frameIsLight = isLightColor(frameColor);
-        ctx.fillStyle = frameIsLight ? 'rgba(28,22,32,0.55)' : '#F5EFE2';
-        const holeW = 30, holeH = 20, holeGap = 50;
-        const holeCount = Math.floor((w - padding) / holeGap);
-        for (let i = 0; i < holeCount; i++) {
-          const hx = padding / 2 + i * holeGap;
-          roundRect(ctx, hx, (sprocketBand - holeH) / 2, holeW, holeH, 5); ctx.fill();
-          roundRect(ctx, hx, h - sprocketBand + (sprocketBand - holeH) / 2 - 34, holeW, holeH, 5); ctx.fill();
-        }
+    ctx.restore();
+  }
 
-        if (opts.banner) {
-          ctx.fillStyle = opts.textColor || (frameIsLight ? '#2B2138' : '#F5EFE2');
-          ctx.font = '600 38px "Baloo 2", sans-serif';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'alphabetic';
-          ctx.fillText(opts.banner, w / 2, h - 26);
-        }
-      },
-    },
+  const LAYOUTS = {
+    // ── STRIP GROUP ───────
+    freeStrip: _makeStrip('freeStrip', 'Classic Strip',    'Decorate it yourself', 'plain'),
 
-    // ── 6-Grid Collage — 1200 × 1800 ─────────────────────────
-    grid6: {
-      id: 'grid6',
-      name: '6-Grid Collage',
-      desc: '2 columns x 3 rows collage',
-      defaultShots: 6,
-      minShots: 6, maxShots: 6,
-      exportW: 1200, exportH: 1800,
-      size() {
-        const w = 1200, h = 1800;
-        const padding = 56, gap = 28;
-        const cell = Math.floor((w - padding * 2 - gap) / 2);
-        const bannerH = Math.round(h - padding * 2 - cell * 3 - gap * 2);
-        return { w, h, cell, padding, gap, bannerH };
-      },
-      draw(ctx, photos, opts) {
-        const { w, h, cell, padding, gap } = this.size();
-        ctx.fillStyle = opts.frameColor || '#FFFFFF';
-        roundRect(ctx, 0, 0, w, h, 60);
-        ctx.fill();
+    // ── GRID GROUP ────────
+    freeGrid:  _makeGrid('freeGrid',  '4-Grid Collage',   'Decorate it yourself', 'plain'),
 
-        const positions = [];
-        for (let row = 0; row < 3; row++) {
-          for (let col = 0; col < 2; col++) {
-            positions.push([padding + col * (cell + gap), padding + row * (cell + gap)]);
-          }
-        }
-        photos.slice(0, 6).forEach((p, i) => {
-          const [x, y] = positions[i];
-          if (p) {
-            drawCoveredImage(ctx, p, x, y, cell, cell, 22);
-          } else {
-            ctx.save();
-            ctx.fillStyle = '#F0E8DC';
-            roundRect(ctx, x, y, cell, cell, 22);
-            ctx.fill();
-            ctx.fillStyle = '#B0A0C0';
-            ctx.font = '600 36px "Baloo 2", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(`Photo ${i + 1}`, x + cell / 2, y + cell / 2);
-            ctx.restore();
-          }
-        });
-
-        if (opts.banner) {
-          ctx.fillStyle = opts.textColor || '#2B2138';
-          ctx.font = '600 56px "Baloo 2", sans-serif';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(opts.banner, w / 2, h - padding / 2);
-        }
-      },
-    },
-
-    // ── Magazine Cover — 1200 × 1500 ─────────────────────────
-    magazine: {
-      id: 'magazine',
-      name: 'Magazine Cover',
-      desc: 'Cover photo with title & headline',
-      defaultShots: 1,
-      minShots: 1, maxShots: 1,
-      exportW: 1200, exportH: 1500,
-      size() {
-        return { w: 1200, h: 1500 };
-      },
-      draw(ctx, photos, opts) {
-        const { w, h } = this.size();
-        const border = 24;
-        ctx.fillStyle = opts.frameColor || '#FFFFFF';
-        roundRect(ctx, 0, 0, w, h, 32);
-        ctx.fill();
-
-        ctx.save();
-        roundRect(ctx, border, border, w - border * 2, h - border * 2, 20);
-        ctx.clip();
-        if (photos[0]) {
-          drawCoveredImage(ctx, photos[0], border, border, w - border * 2, h - border * 2, 0);
-        } else {
-          ctx.fillStyle = '#F0E8DC';
-          ctx.fillRect(border, border, w - border * 2, h - border * 2);
-        }
-        ctx.restore();
-
-        // Masthead
-        ctx.save();
-        ctx.fillStyle = 'rgba(0,0,0,0.3)';
-        ctx.fillRect(border, border, w - border * 2, 180);
-        ctx.fillStyle = '#FFFFFF';
-        ctx.font = '800 96px "Baloo 2", sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('SNAPCRATE', w / 2, border + 100);
-        ctx.restore();
-
-        const headline = (opts.banner || '').trim();
-        if (headline) {
-          ctx.save();
-          ctx.fillStyle = 'rgba(0,0,0,0.45)';
-          ctx.fillRect(border, h - border - 180, w - border * 2, 180);
-          ctx.fillStyle = opts.textColor || '#FFFFFF';
-          ctx.font = '700 64px "Baloo 2", sans-serif';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(headline.slice(0, 30), w / 2, h - border - 90);
-          ctx.restore();
-        }
-      },
-    },
+    // ── POLAROID GROUP ────
+    freePolaroid: _makePolaroid('freePolaroid', 'Polaroid Duo',     'Decorate it yourself', 'plain', 2),
   };
 
   function listLayouts() { return Object.values(LAYOUTS); }
-  function getLayout(id) { return LAYOUTS[id] || LAYOUTS.strip; }
+  function getLayout(id) { return LAYOUTS[id] || LAYOUTS.freeStrip; }
+
 
   /** Return the canonical export dimensions for a layout+shotCount combo.
    *  These are the authoritative pixel sizes — never deviate from them. */
@@ -409,8 +373,8 @@ const UI = (() => {
   }
 
   /** Return the aspect ratio (w/h) of a single photo SLOT within a layout —
-   *  not the full export canvas. For multi-photo layouts (strip, filmstrip,
-   *  grid, grid6) each individual cell has its own shape, distinct from the
+   *  not the full export canvas. For multi-photo layouts (strip, grid)
+   *  each individual cell has its own shape, distinct from the
    *  overall canvas shape. The live camera preview (.camera-stage) needs to
    *  match this per-slot ratio exactly — otherwise the preview crops the
    *  face one way, and drawCoveredImage() later crops it again a different
@@ -419,28 +383,19 @@ const UI = (() => {
   function getShotAspect(layoutId, shotCount) {
     const layout = getLayout(layoutId);
     const count = shotCount || layout.defaultShots;
-    switch (layout.id) {
-      case 'strip': {
-        const { w, photoH, padding } = layout.size(count);
-        return (w - padding * 2) / photoH;
-      }
-      case 'filmstrip':
-        return 1; // square cells, same as the grid layouts
-      case 'grid':
-      case 'grid6':
-        return 1; // square cells
-      case 'polaroid': {
-        const { w, photoH, padding } = layout.size();
-        return (w - padding * 2) / photoH;
-      }
-      case 'magazine': {
-        const { w, h } = layout.size();
-        const border = 24;
-        return (w - border * 2) / (h - border * 2);
-      }
-      default:
-        return 1;
+    // strip variants (including freeStrip)
+    if (layoutId.startsWith('strip') || layoutId === 'freeStrip') {
+      const { w, photoH, padding } = layout.size(count);
+      return (w - padding * 2) / photoH;
     }
+    // grid variants (including freeGrid)
+    if (layoutId.startsWith('grid') || layoutId === 'freeGrid') return 1;
+    // polaroid variants (including freePolaroid)
+    if (layoutId.startsWith('polaroid') || layoutId === 'freePolaroid') {
+      const s = layout.size();
+      return (s.w - s.padding * 2) / s.photoH;
+    }
+    return 1;
   }
 
   /* ----------------------------------------------------------
@@ -538,16 +493,16 @@ const UI = (() => {
      FRAME THEMES
   ---------------------------------------------------------- */
   const FRAME_THEMES = [
-    { id: 'plain',       label: 'Plain',        swatch: '#FFFFFF' },
-    { id: 'kawaii',      label: 'Kawaii',        swatch: '#FFD9CF' },
-    { id: 'pastel',      label: 'Pastel',        swatch: '#D7F3E8' },
-    { id: 'ribbon',      label: 'Ribbon',        swatch: '#FF7AB3' },
-    { id: 'scrapbook',   label: 'Scrapbook',     swatch: '#FFEFC4' },
-    { id: 'doodle',      label: 'Doodle',        swatch: '#2B2138' },
-    { id: 'heart',       label: 'Heart',         swatch: '#FF6B5B' },
-    { id: 'sparkle',     label: 'Sparkle',       swatch: '#7AB8F5' },
-    { id: 'polaroid',    label: 'Polaroid',      swatch: '#FFFFFF' },
-    { id: 'stickerbomb', label: 'Sticker Bomb',  swatch: '#FFC857' },
+    { id: 'plain',       label: 'Plain',        swatch: '#F3ECE0' },
+    { id: 'kawaii',      label: 'Kawaii',       swatch: '#FF9FC4' },
+    { id: 'pastel',      label: 'Pastel',       swatch: '#D7F3E8' },
+    { id: 'ribbon',      label: 'Ribbon',       swatch: '#FF7AB3' },
+    { id: 'scrapbook',   label: 'Scrapbook',    swatch: '#FFEFC4' },
+    { id: 'doodle',      label: 'Doodle',       swatch: '#2B2138' },
+    { id: 'heart',       label: 'Heart',        swatch: '#FF6B5B' },
+    { id: 'sparkle',     label: 'Sparkle',      swatch: '#FFC857' },
+    { id: 'polaroid',    label: 'Polaroid',     swatch: '#F4F1EA' },
+    { id: 'stickerbomb', label: 'Sticker Bomb', swatch: '#FFC857' },
   ];
 
   function listFrameThemes() { return FRAME_THEMES; }
@@ -559,176 +514,163 @@ const UI = (() => {
   }
 
   function applyFrameTheme(ctx, themeId, w, h) {
-    if (themeId === 'plain' || !themeId) return;
+    if (themeId === 'plain' || !themeId) {
+      // Clean matted frame: soft double border so "Plain" still looks finished.
+      const sc = Math.min(w, h) / 480;
+      ctx.save();
+      ctx.globalAlpha = 1; ctx.setLineDash([]);
+      ctx.strokeStyle = 'rgba(43,33,56,0.10)'; ctx.lineWidth = 4 * sc;
+      roundRect(ctx, 4 * sc, 4 * sc, w - 8 * sc, h - 8 * sc, 18 * sc); ctx.stroke();
+      ctx.strokeStyle = 'rgba(43,33,56,0.06)'; ctx.lineWidth = 2 * sc;
+      roundRect(ctx, 11 * sc, 11 * sc, w - 22 * sc, h - 22 * sc, 14 * sc); ctx.stroke();
+      ctx.restore();
+      return;
+    }
     // Scale all frame decorations relative to canvas size so they look
     // identical at any resolution (preview or final export).
     const sc = Math.min(w, h) / 480;
+    // Reset global state that a previous draw pass might have left dirty
+    // (lineDash, globalAlpha, etc.) so frame overlays never stack on repeat
+    // calls — redrawBase() calls this every time a theme chip is tapped.
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
     ctx.save();
 
     if (themeId === 'kawaii') {
-      ctx.strokeStyle = '#FF9FC4'; ctx.lineWidth = 6 * sc;
-      roundRect(ctx, 5 * sc, 5 * sc, w - 10 * sc, h - 10 * sc, 22 * sc); ctx.stroke();
+      // Soft rounded border + a single neat row of tiny hearts, calm & cute.
+      ctx.strokeStyle = '#FFC2DD'; ctx.lineWidth = 5 * sc;
+      roundRect(ctx, 6 * sc, 6 * sc, w - 12 * sc, h - 12 * sc, 28 * sc); ctx.stroke();
       ctx.fillStyle = '#FF9FC4';
-      [[20 * sc, 20 * sc], [w - 20 * sc, 20 * sc], [20 * sc, h - 20 * sc], [w - 20 * sc, h - 20 * sc]].forEach(([cx, cy]) => {
-        ctx.beginPath(); ctx.arc(cx, cy, 5 * sc, 0, Math.PI * 2); ctx.fill();
+      const n = 7;
+      for (let i = 0; i < n; i++) {
+        const x = (i + 1) * (w / (n + 1));
+        pathHeart(ctx, x, 15 * sc, 4.5 * sc); ctx.fill();
+        pathHeart(ctx, x, h - 15 * sc, 4.5 * sc); ctx.fill();
+      }
+      // soft blush corners
+      ctx.fillStyle = 'rgba(255,158,196,0.55)';
+      [[22 * sc, 22 * sc], [w - 22 * sc, 22 * sc], [22 * sc, h - 22 * sc], [w - 22 * sc, h - 22 * sc]].forEach(([x, y]) => {
+        ctx.beginPath(); ctx.ellipse(x, y, 8 * sc, 5 * sc, 0, 0, Math.PI * 2); ctx.fill();
       });
-      ctx.fillStyle = '#FF6B5B';
-      [w * 0.3, w * 0.5, w * 0.7].forEach(hx => {
-        pathHeart(ctx, hx, 14 * sc, 5 * sc); ctx.fill();
-        pathHeart(ctx, hx, h - 14 * sc, 5 * sc); ctx.fill();
-      });
-      ctx.fillStyle = '#FFC857';
-      pathStar(ctx, w * 0.15, 18 * sc, 6 * sc, 0); ctx.fill();
-      pathStar(ctx, w * 0.85, 18 * sc, 6 * sc, 0); ctx.fill();
     }
 
     else if (themeId === 'pastel') {
-      const stripe = 10 * sc;
-      const colors = ['#FFD9CF', '#D7F3E8', '#DCEBFC', '#FFEFC4'];
-      for (let i = 0; i < 4; i++) {
-        ctx.fillStyle = colors[i];
-        ctx.fillRect(0, i * stripe, w, stripe);
-        ctx.fillRect(0, h - (i + 1) * stripe, w, stripe);
-      }
-      ctx.fillStyle = '#FF9FC4';
-      [[12 * sc, h * 0.25], [12 * sc, h * 0.75], [w - 12 * sc, h * 0.25], [w - 12 * sc, h * 0.75]].forEach(([x, y]) => {
-        pathSparkle(ctx, x, y, 6 * sc); ctx.fill();
-      });
+      // Gentle rounded frame in a soft tint, thin inner keyline.
+      ctx.strokeStyle = '#FFE3D6'; ctx.lineWidth = 12 * sc;
+      roundRect(ctx, 7 * sc, 7 * sc, w - 14 * sc, h - 14 * sc, 24 * sc); ctx.stroke();
+      ctx.strokeStyle = '#D7F3E8'; ctx.lineWidth = 2 * sc;
+      roundRect(ctx, 16 * sc, 16 * sc, w - 32 * sc, h - 32 * sc, 18 * sc); ctx.stroke();
+      const dot = (cx, cy, c) => { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(cx, cy, 4.5 * sc, 0, Math.PI * 2); ctx.fill(); };
+      [['#FFB3C8', w * 0.5, 14 * sc], ['#FFB3C8', w * 0.5, h - 14 * sc], ['#9AD9F0', 14 * sc, h * 0.5], ['#9AD9F0', w - 14 * sc, h * 0.5]].forEach(([c, x, y]) => dot(x, y, c));
     }
 
     else if (themeId === 'ribbon') {
-      const tri = 70 * sc;
-      ctx.fillStyle = '#FF7AB3';
-      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(tri, 0); ctx.lineTo(0, tri); ctx.closePath(); ctx.fill();
-      ctx.strokeStyle = '#2B2138'; ctx.lineWidth = 1.4 * sc;
-      ctx.beginPath(); ctx.moveTo(0, tri); ctx.lineTo(tri, 0); ctx.stroke();
-      ctx.fillStyle = '#fff';
-      ctx.font = `700 ${14 * sc}px "Baloo 2", sans-serif`; ctx.textAlign = 'center';
-      ctx.save(); ctx.translate(22 * sc, 22 * sc); ctx.rotate(-Math.PI / 4);
-      ctx.fillText('♥', 0, 5 * sc); ctx.restore();
-      ctx.fillStyle = '#FF7AB3';
-      ctx.beginPath(); ctx.moveTo(w, h); ctx.lineTo(w - tri, h); ctx.lineTo(w, h - tri); ctx.closePath(); ctx.fill();
-      ctx.strokeStyle = '#2B2138'; ctx.lineWidth = 1.4 * sc;
-      ctx.beginPath(); ctx.moveTo(w - tri, h); ctx.lineTo(w, h - tri); ctx.stroke();
-      ctx.fillStyle = 'rgba(255, 122, 179, 0.18)';
-      ctx.fillRect(0, 0, w, 7 * sc);
-      ctx.fillRect(0, h - 7 * sc, w, 7 * sc);
-      _drawBow(ctx, w / 2, 8 * sc, 18 * sc, '#FF7AB3');
+      // Minimal corner ribbons + a small centered bow, clean pink.
+      const tri = 56 * sc;
+      const corner = (x0, y0, flip) => {
+        ctx.fillStyle = '#FF9FC4';
+        ctx.beginPath();
+        ctx.moveTo(x0, y0); ctx.lineTo(x0 + (flip ? -tri : tri), y0); ctx.lineTo(x0, y0 + (flip ? -tri : tri));
+        ctx.closePath(); ctx.fill();
+      };
+      corner(0, 0, false); corner(w, h, true);
+      _drawBow(ctx, w / 2, 14 * sc, 18 * sc, '#FF9FC4');
     }
 
     else if (themeId === 'scrapbook') {
+      // Two washi tapes (top corners) + photo corners, soft stitched frame.
       const tape = (cx, cy, rot, color) => {
         ctx.save(); ctx.translate(cx, cy); ctx.rotate(rot);
-        ctx.fillStyle = color; ctx.globalAlpha = 0.85;
-        ctx.fillRect(-30 * sc, -9 * sc, 60 * sc, 18 * sc);
-        ctx.globalAlpha = 1; ctx.strokeStyle = '#2B2138'; ctx.lineWidth = sc;
-        ctx.strokeRect(-30 * sc, -9 * sc, 60 * sc, 18 * sc);
-        ctx.restore();
+        ctx.fillStyle = color; ctx.globalAlpha = 0.75;
+        ctx.fillRect(-30 * sc, -8 * sc, 60 * sc, 16 * sc);
+        ctx.globalAlpha = 1; ctx.restore();
       };
-      tape(34 * sc, 14 * sc, -0.12, '#FFD9CF');
-      tape(w - 34 * sc, 14 * sc, 0.12, '#DCEBFC');
-      tape(w / 2, h - 14 * sc, 0.06, '#D7F3E8');
-      tape(14 * sc, h * 0.4, Math.PI / 2 + 0.1, '#FFEFC4');
-      tape(w - 14 * sc, h * 0.6, Math.PI / 2 - 0.1, '#FFD9CF');
-      ctx.strokeStyle = '#2B2138'; ctx.lineWidth = 1.6 * sc; ctx.setLineDash([3 * sc, 4 * sc]);
-      [[6 * sc, 6 * sc], [w - 26 * sc, 6 * sc], [6 * sc, h - 26 * sc], [w - 26 * sc, h - 26 * sc]].forEach(([x, y]) => {
-        ctx.strokeRect(x, y, 20 * sc, 20 * sc);
-      });
+      tape(36 * sc, 13 * sc, -0.16, '#FFD9CF');
+      tape(w - 36 * sc, 13 * sc, 0.16, '#DCEBFC');
+      tape(36 * sc, h - 13 * sc, 0.16, '#FFEFC4');
+      tape(w - 36 * sc, h - 13 * sc, -0.16, '#D7F3E8');
+      const corner = (x, y, dx, dy) => {
+        ctx.fillStyle = '#2B2138';
+        ctx.beginPath();
+        ctx.moveTo(x, y); ctx.lineTo(x + dx * 20 * sc, y); ctx.lineTo(x, y + dy * 20 * sc);
+        ctx.closePath(); ctx.fill();
+      };
+      corner(7 * sc, 7 * sc, 1, 1); corner(w - 7 * sc, 7 * sc, -1, 1);
+      corner(7 * sc, h - 7 * sc, 1, -1); corner(w - 7 * sc, h - 7 * sc, -1, -1);
+      ctx.strokeStyle = 'rgba(43,33,56,0.35)'; ctx.lineWidth = 1.4 * sc; ctx.setLineDash([4 * sc, 5 * sc]);
+      roundRect(ctx, 11 * sc, 11 * sc, w - 22 * sc, h - 22 * sc, 10 * sc); ctx.stroke();
       ctx.setLineDash([]);
     }
 
     else if (themeId === 'doodle') {
-      ctx.strokeStyle = '#2B2138'; ctx.lineWidth = 2.4 * sc;
-      ctx.setLineDash([sc, 7 * sc]); ctx.lineCap = 'round';
-      roundRect(ctx, 6 * sc, 6 * sc, w - 12 * sc, h - 12 * sc, 20 * sc); ctx.stroke();
+      // One clean hand-drawn dashed border + small corner stars only.
+      ctx.strokeStyle = '#2B2138'; ctx.lineWidth = 2.2 * sc; ctx.lineCap = 'round';
+      ctx.setLineDash([2 * sc, 8 * sc]);
+      roundRect(ctx, 8 * sc, 8 * sc, w - 16 * sc, h - 16 * sc, 22 * sc); ctx.stroke();
       ctx.setLineDash([]);
       ctx.fillStyle = '#2B2138';
-      [[14 * sc, 14 * sc], [w - 14 * sc, 14 * sc], [14 * sc, h - 14 * sc], [w - 14 * sc, h - 14 * sc]].forEach(([sx, sy]) => {
-        pathStar(ctx, sx, sy, 7 * sc, Math.PI / 8); ctx.fill();
-      });
-      ctx.strokeStyle = '#2B2138'; ctx.lineWidth = 1.6 * sc; ctx.lineCap = 'round';
-      const zigzag = (startX, y, steps, amp) => {
-        ctx.beginPath(); ctx.moveTo(startX, y);
-        for (let i = 1; i <= steps; i++) ctx.lineTo(startX + i * (w / steps), y + (i % 2 === 0 ? 0 : amp));
-        ctx.stroke();
-      };
-      zigzag(0, 22 * sc, 12, 4 * sc);
-      zigzag(0, h - 22 * sc, 12, -4 * sc);
+      [[18 * sc, 18 * sc], [w - 18 * sc, 18 * sc], [18 * sc, h - 18 * sc], [w - 18 * sc, h - 18 * sc]].forEach(([sx, sy]) => { pathStar(ctx, sx, sy, 6 * sc, Math.PI / 8); ctx.fill(); });
     }
 
     else if (themeId === 'heart') {
-      ctx.fillStyle = '#FF6B5B';
-      const rng = seeded(w * 7 + h);
-      const count = Math.max(8, Math.floor(h / (60 * sc)));
-      for (let i = 0; i < count; i++) {
-        const side = i % 4;
-        let x, y;
-        if (side === 0) { x = 14 * sc + rng() * (w - 28 * sc); y = 12 * sc + rng() * 10 * sc; }
-        else if (side === 1) { x = 14 * sc + rng() * (w - 28 * sc); y = h - 12 * sc - rng() * 10 * sc; }
-        else if (side === 2) { x = 12 * sc + rng() * 10 * sc; y = 40 * sc + rng() * (h - 80 * sc); }
-        else { x = w - 12 * sc - rng() * 10 * sc; y = 40 * sc + rng() * (h - 80 * sc); }
-        ctx.fillStyle = i % 2 === 0 ? '#FF6B5B' : '#FF7AB3';
-        pathHeart(ctx, x, y, (6 + rng() * 4) * sc); ctx.fill();
-      }
+      // Single elegant heart keyline border + a couple of accent hearts.
       ctx.strokeStyle = '#FF9FC4'; ctx.lineWidth = 4 * sc;
-      roundRect(ctx, 5 * sc, 5 * sc, w - 10 * sc, h - 10 * sc, 22 * sc); ctx.stroke();
+      roundRect(ctx, 7 * sc, 7 * sc, w - 14 * sc, h - 14 * sc, 22 * sc); ctx.stroke();
+      ctx.fillStyle = '#FF6B5B';
+      pathHeart(ctx, w / 2, 15 * sc, 6 * sc); ctx.fill();
+      pathHeart(ctx, w / 2, h - 15 * sc, 6 * sc); ctx.fill();
+      ctx.fillStyle = '#FFB3C8';
+      pathHeart(ctx, 15 * sc, h * 0.5, 5 * sc); ctx.fill();
+      pathHeart(ctx, w - 15 * sc, h * 0.5, 5 * sc); ctx.fill();
     }
 
     else if (themeId === 'sparkle') {
-      const rng = seeded(w * 3 + h * 5);
-      const positions = [
-        [18 * sc, 18 * sc], [w - 18 * sc, 18 * sc], [18 * sc, h - 18 * sc], [w - 18 * sc, h - 18 * sc],
-        [w / 2, 14 * sc], [w / 2, h - 14 * sc],
-        [w * 0.25, 14 * sc], [w * 0.75, 14 * sc], [w * 0.25, h - 14 * sc], [w * 0.75, h - 14 * sc],
-        [12 * sc, h / 2], [w - 12 * sc, h / 2],
-      ];
-      positions.forEach(([x, y], i) => {
-        ctx.fillStyle = i % 3 === 0 ? '#FFC857' : i % 3 === 1 ? '#7AB8F5' : '#FF9FC4';
-        if (i % 2 === 0) { pathSparkle(ctx, x, y, (8 + rng() * 4) * sc); }
-        else { pathStar(ctx, x, y, (6 + rng() * 3) * sc, rng() * Math.PI); }
+      // Refined: thin gold keyline + four corner sparkles only.
+      ctx.strokeStyle = '#FFD98A'; ctx.lineWidth = 3 * sc;
+      roundRect(ctx, 7 * sc, 7 * sc, w - 14 * sc, h - 14 * sc, 20 * sc); ctx.stroke();
+      const corners = [[20 * sc, 20 * sc], [w - 20 * sc, 20 * sc], [20 * sc, h - 20 * sc], [w - 20 * sc, h - 20 * sc]];
+      const cc = ['#FFC857', '#7AB8F5', '#FF9FC4', '#FFC857'];
+      corners.forEach(([x, y], i) => {
+        ctx.fillStyle = cc[i];
+        if (i % 2 === 0) pathSparkle(ctx, x, y, 9 * sc);
+        else pathStar(ctx, x, y, 7 * sc, Math.PI / 6);
         ctx.fill();
       });
-      ctx.strokeStyle = '#FFC857'; ctx.lineWidth = 3 * sc;
-      ctx.setLineDash([5 * sc, 8 * sc]);
-      roundRect(ctx, 6 * sc, 6 * sc, w - 12 * sc, h - 12 * sc, 20 * sc); ctx.stroke();
-      ctx.setLineDash([]);
     }
 
     else if (themeId === 'polaroid') {
-      ctx.strokeStyle = '#EFE2D0'; ctx.lineWidth = 14 * sc;
-      roundRect(ctx, 7 * sc, 7 * sc, w - 14 * sc, h - 14 * sc, 12 * sc); ctx.stroke();
-      ctx.fillStyle = '#2B2138';
-      ctx.beginPath(); ctx.arc(w / 2, 12 * sc, 4 * sc, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#EFE2D0';
-      [[0, 0], [w, 0], [0, h], [w, h]].forEach(([cx, cy]) => {
-        ctx.beginPath();
-        const s = 18 * sc;
-        ctx.moveTo(cx, cy);
-        ctx.lineTo(cx + (cx === 0 ? s : -s), cy);
-        ctx.lineTo(cx, cy + (cy === 0 ? s : -s));
-        ctx.closePath(); ctx.fill();
-      });
+      // Clean white instant-film border with a subtle inner shadow line.
+      ctx.strokeStyle = '#F4F1EA'; ctx.lineWidth = 18 * sc;
+      roundRect(ctx, 9 * sc, 9 * sc, w - 18 * sc, h - 18 * sc, 8 * sc); ctx.stroke();
+      ctx.strokeStyle = 'rgba(43,33,56,0.10)'; ctx.lineWidth = 1.2 * sc;
+      roundRect(ctx, 19 * sc, 19 * sc, w - 38 * sc, h - 38 * sc, 4 * sc); ctx.stroke();
     }
 
     else if (themeId === 'stickerbomb') {
+      // Playful but tidy: evenly spaced stickers along all four edges.
       const rng = seeded(w * 13 + h * 7);
       const shapes = ['star', 'heart', 'sparkle'];
-      const colors = ['#FF6B5B', '#FFC857', '#58C9A3', '#7AB8F5', '#FF7AB3'];
-      for (let i = 0; i < 18; i++) {
-        const edge = Math.floor(rng() * 4);
-        let x, y;
-        if (edge === 0) { x = rng() * w; y = 10 * sc + rng() * 14 * sc; }
-        else if (edge === 1) { x = rng() * w; y = h - 10 * sc - rng() * 14 * sc; }
-        else if (edge === 2) { x = 10 * sc + rng() * 14 * sc; y = rng() * h; }
-        else { x = w - 10 * sc - rng() * 14 * sc; y = rng() * h; }
+      const colors = ['#FF6B5B', '#FFC857', '#58C9A3', '#7AB8F5', '#FF7AB3', '#B98CFF'];
+      const perEdge = 5;
+      const place = (x, y) => {
         const shape = shapes[Math.floor(rng() * shapes.length)];
         ctx.fillStyle = colors[Math.floor(rng() * colors.length)];
-        ctx.strokeStyle = '#2B2138'; ctx.lineWidth = 1.2 * sc;
-        const r = (6 + rng() * 5) * sc;
+        ctx.strokeStyle = '#2B2138'; ctx.lineWidth = 1 * sc;
+        const r = (7 + rng() * 4) * sc;
         if (shape === 'star') pathStar(ctx, x, y, r, rng() * Math.PI);
         else if (shape === 'heart') pathHeart(ctx, x, y, r * 0.7);
         else pathSparkle(ctx, x, y, r);
         ctx.fill(); ctx.stroke();
+      };
+      for (let i = 0; i < perEdge; i++) {
+        const tx = (i + 1) * (w / (perEdge + 1));
+        place(tx, 16 * sc + rng() * 8 * sc);
+        place(tx, h - 16 * sc - rng() * 8 * sc);
+      }
+      for (let i = 0; i < perEdge; i++) {
+        const ty = (i + 1) * (h / (perEdge + 1));
+        place(16 * sc + rng() * 8 * sc, ty);
+        place(w - 16 * sc - rng() * 8 * sc, ty);
       }
     }
 
@@ -777,6 +719,9 @@ const UI = (() => {
       if (layer) { layer.el.classList.add('selected'); selectedId = id; }
     }
 
+    const DELETE_ICON = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg>';
+    const ROTATE_ICON = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M20 5v6h-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
     function makeHandle(parentEl, className, innerHTML) {
       const h = document.createElement('div');
       h.className = className;
@@ -794,9 +739,30 @@ const UI = (() => {
       const stageRect = stageEl.getBoundingClientRect();
       const w = opts.w || (type === 'sticker' ? 70 : 140);
       const h = opts.h || (type === 'sticker' ? 70 : 40);
-      const x = opts.x ?? (stageRect.width / 2 - w / 2);
-      const y = opts.y ?? (stageRect.height / 2 - h / 2);
-      const rotation = opts.rotation || 0;
+
+      let x, y, rotation;
+      if (opts.random) {
+        // Pick a random zone around the frame (top-middle, bottom, left edge,
+        // right edge) and a random tilt so the sticker lands angled to the frame.
+        const margin = 6;
+        const zones = ['top', 'bottom', 'left', 'right'];
+        const zone = zones[Math.floor(Math.random() * zones.length)];
+        const maxX = Math.max(margin, stageRect.width - w - margin);
+        const maxY = Math.max(margin, stageRect.height - h - margin);
+        if (zone === 'top') {
+          x = Math.random() * maxX; y = margin; rotation = (Math.random() * 30 - 15);
+        } else if (zone === 'bottom') {
+          x = Math.random() * maxX; y = maxY; rotation = (Math.random() * 30 - 15);
+        } else if (zone === 'left') {
+          x = margin; y = Math.random() * maxY; rotation = (Math.random() * 30 - 15);
+        } else {
+          x = maxX; y = Math.random() * maxY; rotation = (Math.random() * 30 - 15);
+        }
+      } else {
+        x = opts.x ?? (stageRect.width / 2 - w / 2);
+        y = opts.y ?? (stageRect.height / 2 - h / 2);
+        rotation = opts.rotation || 0;
+      }
 
       if (type === 'sticker') {
         if (opts.isImage && opts.src) {
@@ -810,9 +776,9 @@ const UI = (() => {
         el.style.fontSize = (opts.fontSize || 24) + 'px';
       }
 
-      makeHandle(el, 'layer-delete', '✕');
+      makeHandle(el, 'layer-delete', DELETE_ICON);
       makeHandle(el, 'layer-handle');
-      makeHandle(el, 'layer-rotate', '↻');
+      makeHandle(el, 'layer-rotate', ROTATE_ICON);
 
       el.style.left = x + 'px';
       el.style.top = y + 'px';
@@ -824,6 +790,7 @@ const UI = (() => {
       const layer = {
         id, type, el, x, y, w, h,
         rotation,
+        random: opts.random || false,
         content,
         color: opts.color,
         fontSize: opts.fontSize || 24,
@@ -950,9 +917,9 @@ const UI = (() => {
           if (next !== null && next.trim()) {
             layer.content = next.trim();
             el.textContent = layer.content;
-            makeHandle(el, 'layer-delete', '✕');
+            makeHandle(el, 'layer-delete', DELETE_ICON);
             const h2 = makeHandle(el, 'layer-handle');
-            makeHandle(el, 'layer-rotate', '↻');
+            makeHandle(el, 'layer-rotate', ROTATE_ICON);
             attachResizeOnly(layer, h2);
           }
         });
@@ -1140,22 +1107,11 @@ const UI = (() => {
     });
   }
 
-  /* ----------------------------------------------------------
-     POSE PROMPTS
-  ---------------------------------------------------------- */
-  const POSES = [
-    'Peace sign!', 'Big cheesy smile', 'Surprised face', 'Strike a pose',
-    'Duck face (just kidding, smile!)', 'Look over your shoulder', 'Jazz hands',
-    'Wink at the camera', 'Pretend to laugh', 'Crossed arms, cool look',
-  ];
-  function randomPose() { return POSES[Math.floor(Math.random() * POSES.length)]; }
-
   return {
     listLayouts, getLayout, getExportSize, getShotAspect,
     drawCoveredImage, roundRect,
     getStickers, preloadStickerImages, loadStickerImage, loadStickerManifest,
     createEditor, bakeLayersToCanvasAsync, snapshotLayers, bakeSnapshots,
-    showToast, fireConfetti, renderBgDecor, randomPose,
-    listFrameThemes, getFrameTheme, applyFrameTheme,
+    showToast, fireConfetti, renderBgDecor, listFrameThemes, getFrameTheme, applyFrameTheme,
   };
 })();

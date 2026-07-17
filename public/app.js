@@ -54,7 +54,7 @@
   })();
 
   const state = {
-    layoutId: 'strip',
+    layoutId: 'freeStrip',
     shotCount: 3,
     filterId: 'none',
     timerSeconds: 3,
@@ -78,12 +78,12 @@
   const FRAME_COLORS = ['#FFFFFF', '#2B2138', '#FFD9CF', '#D7F3E8', '#FFEFC4'];
 
   let editor = null;
+  let cfsActive = false;
+  let decorateFs = false;
 
   const $ = (id) => document.getElementById(id);
   const el = {
     stepsBar: $('stepsBar'),
-    layoutGrid: $('layoutGrid'),
-    shotCountSelect: $('shotCountSelect'),
     toCaptureBtn: $('toCaptureBtn'),
 
     cameraVideo: $('cameraVideo'),
@@ -95,7 +95,7 @@
     enableCameraBtn: $('enableCameraBtn'),
     flipCameraBtn: $('flipCameraBtn'),
     mirrorBtn: $('mirrorBtn'),
-    flashToggleBtn: $('flashToggleBtn'),
+    flashToggleBtn: null,
     cameraFlash: $('cameraFlash'),
     filterToggleBtn: $('filterToggleBtn'),
     filterStrip: $('filterStrip'),
@@ -114,6 +114,7 @@
     decorateStage: $('decorateStage'),
     panelTabs: $('panelTabs'),
     stickerGrid: $('stickerGrid'),
+    randomStickerBtn: $('randomStickerBtn'),
     textInput: $('textInput'),
     addTextBtn: $('addTextBtn'),
     textColorRow: $('textColorRow'),
@@ -143,6 +144,31 @@
     soundBtn: $('soundBtn'),
     bgDecor: $('bgDecor'),
     bgMusic: $('bgMusic'),
+
+    // Fullscreen camera overlay
+    enterFullscreenBtn: $('enterFullscreenBtn'),
+    cfsOverlay: $('cfsOverlay'),
+    cfsVideoWrap: $('cfsVideoWrap'),
+    cfsFlash: $('cfsFlash'),
+    cfsCountdown: $('cfsCountdown'),
+    cfsCountdownNum: $('cfsCountdownNum'),
+    cfsExitBtn: $('cfsExitBtn'),
+    cfsFlipBtn: $('cfsFlipBtn'),
+    cfsFlashBtn: null,
+    cfsProgressDots: $('cfsProgressDots'),
+    cfsTimerPills: $('cfsTimerPills'),
+    cfsFilterToggleBtn: null,
+    cfsFilterTray: $('cfsFilterTray'),
+    cfsShutterBtn: $('cfsShutterBtn'),
+    cfsShotsThumBtn: $('cfsShotsThumBtn'),
+    cfsShotsCard: $('cfsShotsCard'),
+    cfsShotsCardClose: $('cfsShotsCardClose'),
+    cfsShotsGrid: $('cfsShotsGrid'),
+    cfsShotsCount: $('cfsShotsCount'),
+    cfsProceedBtn: $('cfsProceedBtn'),
+
+    // Decorate fullscreen btn
+    decorateFullscreenBtn: $('decorateFullscreenBtn'),
   };
 
   /* ----------------------------------------------------------
@@ -159,88 +185,63 @@
   }
 
   /* ----------------------------------------------------------
-     SCREEN 1: LAYOUT PICKER
-  ---------------------------------------------------------- */
-  function renderLayoutGrid() {
-    el.layoutGrid.innerHTML = '';
-    UI.listLayouts().forEach(layout => {
-      const card = document.createElement('div');
-      card.className = 'layout-card' + (layout.id === state.layoutId ? ' selected' : '');
-      card.dataset.layout = layout.id;
-      card.innerHTML = `
-        <div class="thumb">${layoutThumbSvg(layout.id)}</div>
-        <div class="name">${layout.name}</div>
-        <div class="desc">${layout.desc}</div>
-      `;
-      card.addEventListener('click', () => {
-        state.layoutId = layout.id;
-        const def = UI.getLayout(layout.id);
-        state.shotCount = def.defaultShots;
-        renderLayoutGrid();
-        populateShotCountSelect();
-      });
-      el.layoutGrid.appendChild(card);
+      SCREEN 1: LAYOUT PICKER (Cover Flow selector)
+      The dropdown shot-count picker is gone — each layout defines
+      its own defaultShots, and CoverFlow's onChange keeps state in
+      sync as the user browses, so by the time they tap Continue
+      state.layoutId/state.shotCount already match the centered card.
+   ---------------------------------------------------------- */
+  /** Update the proceed button labels. All layouts go through the
+   *  decorate screen, so the label is always "Decorate strip". */
+  function updateProceedButtonLabels() {
+    const svgArrow = `<svg viewBox="0 0 24 24" width="18" height="18"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+    if (el.toDecorateBtn) {
+      el.toDecorateBtn.innerHTML = `Decorate strip ${svgArrow}`;
+    }
+    if (el.cfsProceedBtn) {
+      el.cfsProceedBtn.textContent = 'Decorate strip \u2192';
+    }
+  }
+
+  function initLayoutPicker() {
+    CoverFlow.init({
+      layouts: UI.listLayouts(),
+      initialId: state.layoutId,
+      onChange: (layout) => {
+        // Only update state when the user is actually on the layout picker screen.
+        // If onChange fires while they're mid-capture or decorating (e.g. from
+        // autoplay or a stale callback), ignore it — never overwrite shotCount
+        // while photos are already being taken or edited.
+        const activeScreen = document.querySelector('.screen.active');
+        const onLayoutScreen = !activeScreen || activeScreen.dataset.screen === 'layout';
+        if (!onLayoutScreen) return;
+        state.layoutId  = layout.id;
+        state.shotCount = layout.defaultShots;
+        updateProceedButtonLabels();
+      },
     });
   }
 
-  function layoutThumbSvg(id) {
-    const stroke = '#2B2138';
-    if (id === 'strip') {
-      return `<svg width="64" height="64" viewBox="0 0 64 64"><rect x="14" y="4" width="36" height="56" rx="6" fill="#FFF6EC" stroke="${stroke}" stroke-width="2"/>
-        <rect x="19" y="9" width="26" height="14" rx="2" fill="#FFD9CF"/><rect x="19" y="25" width="26" height="14" rx="2" fill="#D7F3E8"/><rect x="19" y="41" width="26" height="12" rx="2" fill="#DCEBFC"/></svg>`;
-    }
-    if (id === 'grid') {
-      return `<svg width="64" height="64" viewBox="0 0 64 64"><rect x="6" y="6" width="52" height="52" rx="6" fill="#FFF6EC" stroke="${stroke}" stroke-width="2"/>
-        <rect x="11" y="11" width="20" height="20" rx="3" fill="#FFD9CF"/><rect x="33" y="11" width="20" height="20" rx="3" fill="#D7F3E8"/><rect x="11" y="33" width="20" height="20" rx="3" fill="#DCEBFC"/><rect x="33" y="33" width="20" height="20" rx="3" fill="#FFEFC4"/></svg>`;
-    }
-    if (id === 'polaroid') {
-      return `<svg width="64" height="64" viewBox="0 0 64 64"><rect x="10" y="6" width="44" height="50" rx="3" fill="#FFF6EC" stroke="${stroke}" stroke-width="2"/>
-        <rect x="14" y="10" width="36" height="32" rx="2" fill="#FFD9CF"/></svg>`;
-    }
-    if (id === 'filmstrip') {
-      return `<svg width="64" height="64" viewBox="0 0 64 64"><rect x="2" y="14" width="60" height="36" rx="6" fill="#1C1620"/>
-        <rect x="8" y="21" width="13" height="13" rx="2" fill="#FFD9CF"/><rect x="24" y="21" width="13" height="13" rx="2" fill="#D7F3E8"/><rect x="40" y="21" width="13" height="13" rx="2" fill="#DCEBFC"/>
-        <rect x="5" y="16" width="6" height="4" rx="1" fill="#F5EFE2" opacity=".8"/><rect x="15" y="16" width="6" height="4" rx="1" fill="#F5EFE2" opacity=".8"/><rect x="25" y="16" width="6" height="4" rx="1" fill="#F5EFE2" opacity=".8"/><rect x="35" y="16" width="6" height="4" rx="1" fill="#F5EFE2" opacity=".8"/><rect x="45" y="16" width="6" height="4" rx="1" fill="#F5EFE2" opacity=".8"/><rect x="55" y="16" width="4" height="4" rx="1" fill="#F5EFE2" opacity=".8"/>
-        <rect x="5" y="44" width="6" height="4" rx="1" fill="#F5EFE2" opacity=".8"/><rect x="15" y="44" width="6" height="4" rx="1" fill="#F5EFE2" opacity=".8"/><rect x="25" y="44" width="6" height="4" rx="1" fill="#F5EFE2" opacity=".8"/><rect x="35" y="44" width="6" height="4" rx="1" fill="#F5EFE2" opacity=".8"/><rect x="45" y="44" width="6" height="4" rx="1" fill="#F5EFE2" opacity=".8"/><rect x="55" y="44" width="4" height="4" rx="1" fill="#F5EFE2" opacity=".8"/></svg>`;
-    }
-    if (id === 'grid6') {
-      return `<svg width="64" height="64" viewBox="0 0 64 64"><rect x="6" y="4" width="52" height="56" rx="6" fill="#FFF6EC" stroke="${stroke}" stroke-width="2"/>
-        <rect x="11" y="9" width="20" height="14" rx="2" fill="#FFD9CF"/><rect x="33" y="9" width="20" height="14" rx="2" fill="#D7F3E8"/>
-        <rect x="11" y="25" width="20" height="14" rx="2" fill="#DCEBFC"/><rect x="33" y="25" width="20" height="14" rx="2" fill="#FFEFC4"/>
-        <rect x="11" y="41" width="20" height="14" rx="2" fill="#FFD9CF"/><rect x="33" y="41" width="20" height="14" rx="2" fill="#D7F3E8"/></svg>`;
-    }
-    if (id === 'magazine') {
-      return `<svg width="64" height="64" viewBox="0 0 64 64"><rect x="8" y="2" width="48" height="60" rx="4" fill="#FFD9CF" stroke="${stroke}" stroke-width="2"/>
-        <rect x="8" y="2" width="48" height="14" rx="2" fill="${stroke}" opacity=".75"/><rect x="8" y="48" width="48" height="14" rx="2" fill="${stroke}" opacity=".5"/>
-        <rect x="14" y="6" width="36" height="6" rx="1" fill="#FFF6EC"/><rect x="14" y="52" width="28" height="5" rx="1" fill="#FFF6EC"/></svg>`;
-    }
-    return `<svg width="64" height="64" viewBox="0 0 64 64"><rect x="10" y="6" width="44" height="50" rx="3" fill="#FFF6EC" stroke="${stroke}" stroke-width="2"/>
-      <rect x="14" y="10" width="36" height="32" rx="2" fill="#FFD9CF"/></svg>`;
-  }
-
-  function populateShotCountSelect() {
-    const def = UI.getLayout(state.layoutId);
-    el.shotCountSelect.innerHTML = '';
-    for (let n = def.minShots; n <= def.maxShots; n++) {
-      const opt = document.createElement('option');
-      opt.value = n;
-      opt.textContent = `${n} shot${n > 1 ? 's' : ''}`;
-      if (n === state.shotCount) opt.selected = true;
-      el.shotCountSelect.appendChild(opt);
-    }
-    el.shotCountSelect.disabled = def.minShots === def.maxShots;
-  }
-
-  el.shotCountSelect.addEventListener('change', (e) => {
-    state.shotCount = parseInt(e.target.value, 10);
-  });
-
   el.toCaptureBtn.addEventListener('click', async () => {
-    state.photos = [];
+    // Always re-read layout from CoverFlow so shotCount is 100% in sync
+    // with whatever card is centered — guards against stale state if the
+    // user browses the picker but the onChange fired before they settled.
+    const currentLayout = CoverFlow.getCurrentLayout();
+    if (currentLayout) {
+      state.layoutId  = currentLayout.id;
+      state.shotCount = currentLayout.defaultShots;
+    }
+
+    // Full reset — no leftover photos from a previous session bleeding
+    // into the new layout's shot count.
+    state.photos        = [];
     state.filteredPhotos = [];
-    state.retakeSlot = null;
+    state.retakeSlot    = null;
+
     updateShotsPanel();
     applyCameraStageAspect();
+    updateProceedButtonLabels();
     goToScreen('capture');
     if (state.soundOn) setMusicPlaying(true);
     await startCameraFlow();
@@ -287,7 +288,8 @@
     if (cls) el.cameraVideo.classList.add(cls);
   }
 
-  el.filterToggleBtn.addEventListener('click', () => {
+  // Filter strip is always visible — toggle is a hidden stub
+  if (el.filterToggleBtn) el.filterToggleBtn.addEventListener('click', () => {
     el.filterStrip.hidden = !el.filterStrip.hidden;
   });
 
@@ -315,7 +317,6 @@
     applyLiveFilterClass();
     el.flipCameraBtn.disabled = !Camera.canFlip();
     renderFilterStrip();
-    showPosePrompt();
   }
 
   function permissionMessage(code) {
@@ -337,24 +338,8 @@
 
   el.mirrorBtn.addEventListener('click', () => { Camera.toggleMirror(); });
 
-  el.flashToggleBtn.addEventListener('click', () => {
-    state.flashOn = !state.flashOn;
-    updateFlashToggleUI();
-  });
-
   function updateFlashToggleUI() {
-    el.flashToggleBtn.classList.toggle('active', state.flashOn);
-    el.flashToggleBtn.setAttribute('aria-pressed', String(state.flashOn));
-    el.flashToggleBtn.title = state.flashOn ? 'Flash on' : 'Flash off';
-  }
-  updateFlashToggleUI();
-
-  function showPosePrompt() {
-    if (Math.random() > 0.55) {
-      el.poseText.textContent = UI.randomPose();
-      el.poseOverlay.hidden = false;
-      setTimeout(() => { el.poseOverlay.hidden = true; }, 2200);
-    }
+    // flash button removed; no-op kept for call-site compatibility
   }
 
   /* ----------------------------------------------------------
@@ -395,6 +380,12 @@
     el.retakeLastBtn.disabled = captured === 0;
     el.toDecorateBtn.disabled = captured < state.shotCount;
 
+    // Show eye preview button only once all shots are done.
+    // Also close any open preview float if shots change (retake/restart).
+    const previewEyeBtn = document.getElementById('previewEyeBtn');
+    if (previewEyeBtn) previewEyeBtn.hidden = captured < state.shotCount;
+    if (captured < state.shotCount) closePreviewFloat();
+
     if (state.retakeSlot !== null) {
       el.shutterBtn.setAttribute('aria-label', `Retake photo ${state.retakeSlot + 1}`);
       el.shutterBtn.classList.add('retake-mode');
@@ -423,9 +414,7 @@
     captureBusy = false;
 
     const captured = state.photos.filter(Boolean).length;
-    if (captured < state.shotCount && state.retakeSlot === null) {
-      showPosePrompt();
-    } else if (state.retakeSlot === null && captured >= state.shotCount) {
+    if (captured >= state.shotCount && state.retakeSlot === null) {
       UI.showToast('All shots captured! Great job!');
     }
   });
@@ -483,6 +472,16 @@
     void el.cameraFlash.offsetWidth; // restart animation if fired in quick succession
     el.cameraFlash.classList.add('fire');
     setTimeout(() => el.cameraFlash.classList.remove('fire'), 250);
+    // Flash border ring
+    el.cameraStage.classList.add('flash-ring');
+    setTimeout(() => el.cameraStage.classList.remove('flash-ring'), 220);
+    // Also fire CFS flash if in fullscreen
+    if (cfsActive) {
+      el.cfsFlash.classList.remove('fire');
+      void el.cfsFlash.offsetWidth;
+      el.cfsFlash.classList.add('fire');
+      setTimeout(() => el.cfsFlash.classList.remove('fire'), 250);
+    }
   }
 
   el.retakeLastBtn.addEventListener('click', () => {
@@ -491,18 +490,78 @@
   });
 
   el.restartSessionBtn.addEventListener('click', () => {
-    state.photos = [];
+    state.photos         = [];
     state.filteredPhotos = [];
-    state.retakeSlot = null;
+    state.retakeSlot     = null;
     updateShotsPanel();
     UI.showToast('Session restarted');
   });
 
-  el.toDecorateBtn.addEventListener('click', () => {
+  el.toDecorateBtn.addEventListener('click', async () => {
     Camera.stop();
     state.retakeSlot = null;
+
+    // Clamp photos to exact shotCount
+    state.filteredPhotos = state.filteredPhotos.slice(0, state.shotCount);
+    state.photos         = state.photos.slice(0, state.shotCount);
+    while (state.filteredPhotos.length < state.shotCount) state.filteredPhotos.push(null);
+    while (state.photos.length         < state.shotCount) state.photos.push(null);
+
     goToScreen('decorate');
     renderDecorateStage();
+  });
+
+  // ── Floating preview modal ───────────────────────────────
+  function openPreviewFloat() {
+    const backdrop = document.getElementById('previewBackdrop');
+    const inner    = document.getElementById('previewFloatInner');
+    if (!backdrop || !inner) return;
+
+    // Clean up any previous save row appended outside inner
+    const card = document.getElementById('previewFloatCard');
+    card?.querySelectorAll('.preview-save-row').forEach(el => el.remove());
+    inner.innerHTML = '';
+
+    try {
+      const layout = UI.getLayout(state.layoutId);
+
+      const { w, h } = layout.size(state.shotCount);
+      const previewCanvas = document.createElement('canvas');
+      previewCanvas.width  = w;
+      previewCanvas.height = h;
+      const ctx = previewCanvas.getContext('2d');
+      const photos = state.filteredPhotos.slice(0, state.shotCount);
+      layout.draw(ctx, photos, {
+        frameColor: state.frameColor,
+        textColor:  state.textColor,
+        banner:     state.banner,
+      });
+      // Contain scaling: max 80vw wide and max 60vh tall, keep natural aspect ratio.
+      const modalW = Math.min(window.innerWidth  * 0.80, 380);
+      const modalH = Math.min(window.innerHeight * 0.60, 500);
+      const scaleW = modalW / w;
+      const scaleH = modalH / h;
+      const scale  = Math.min(scaleW, scaleH, 1);
+      previewCanvas.style.width        = Math.round(w * scale) + 'px';
+      previewCanvas.style.height       = Math.round(h * scale) + 'px';
+      previewCanvas.style.display      = 'block';
+      previewCanvas.style.borderRadius = '12px';
+      previewCanvas.style.margin       = '0 auto';
+      inner.appendChild(previewCanvas);
+    } catch (_) {}
+    requestAnimationFrame(() => backdrop.classList.add('show'));
+  }
+
+  function closePreviewFloat() {
+    const backdrop = document.getElementById('previewBackdrop');
+    if (!backdrop || !backdrop.classList.contains('show')) return;
+    backdrop.classList.remove('show');
+  }
+
+  document.getElementById('previewEyeBtn')?.addEventListener('click', openPreviewFloat);
+  document.getElementById('previewFloatClose')?.addEventListener('click', closePreviewFloat);
+  document.getElementById('previewBackdrop')?.addEventListener('click', (e) => {
+    if (e.target === document.getElementById('previewBackdrop')) closePreviewFloat();
   });
 
   /* ----------------------------------------------------------
@@ -524,18 +583,22 @@
     decorateBaseCanvas.width = w;
     decorateBaseCanvas.height = h;
     const ctx = decorateBaseCanvas.getContext('2d');
-    layout.draw(ctx, state.filteredPhotos, {
+
+    // Slice to exact shot count — guards against stale photos array
+    // having more/fewer entries than the chosen layout expects.
+    const photos = state.filteredPhotos.slice(0, state.shotCount);
+    layout.draw(ctx, photos, {
       frameColor: state.frameColor, textColor: state.textColor, banner: state.banner,
     });
     UI.applyFrameTheme(ctx, state.frameThemeId, w, h);
 
     el.decorateStage.appendChild(decorateBaseCanvas);
 
-    const isMobile = window.innerWidth <= 880;
-    const maxW = isMobile
-      ? Math.min(w, window.innerWidth - 32)
-      : Math.min(480, window.innerWidth - 64);
-    const displayScale = Math.min(1, maxW / w);
+    // Always display at 50% of the canvas native resolution — keeps the
+    // decorate stage compact on all screen sizes. The canvas itself is
+    // still full-res, so exports/downloads are completely unaffected.
+    const maxW = Math.min(w * 0.5, window.innerWidth - 32);
+    const displayScale = Math.min(0.5, maxW / w);
     decorateBaseCanvas.style.width = (w * displayScale) + 'px';
     decorateBaseCanvas.style.height = (h * displayScale) + 'px';
     el.decorateStage.style.width = (w * displayScale) + 'px';
@@ -576,7 +639,10 @@
     if (!decorateBaseCanvas) return;
     const layout = UI.getLayout(state.layoutId);
     const ctx = decorateBaseCanvas.getContext('2d');
-    layout.draw(ctx, state.filteredPhotos, {
+    // Always slice to the layout's exact shot count so changing frame
+    // themes never accidentally renders photos from a different layout.
+    const photos = state.filteredPhotos.slice(0, state.shotCount);
+    layout.draw(ctx, photos, {
       frameColor: state.frameColor, textColor: state.textColor, banner: state.banner,
     });
     UI.applyFrameTheme(ctx, state.frameThemeId, decorateBaseCanvas.width, decorateBaseCanvas.height);
@@ -604,6 +670,17 @@
     });
   }
 
+  el.randomStickerBtn.addEventListener('click', () => {
+    const stickers = UI.getStickers();
+    if (!stickers.length) return;
+    const s = stickers[Math.floor(Math.random() * stickers.length)];
+    if (s.isImage) {
+      editor.addLayer('sticker', s.label, { isImage: true, src: s.src, w: 80, h: 80, random: true });
+    } else {
+      editor.addLayer('sticker', s.svg, { random: true });
+    }
+  });
+
   function renderSwatchRow(container, colors, active, onPick) {
     container.innerHTML = '';
     colors.forEach(c => {
@@ -627,6 +704,7 @@
     ['stickers', 'text', 'frame'].forEach(name => {
       document.getElementById('panel-' + name).hidden = name !== btn.dataset.panel;
     });
+    if (el.randomStickerBtn) el.randomStickerBtn.hidden = btn.dataset.panel !== 'stickers';
   });
 
   el.addTextBtn.addEventListener('click', () => {
@@ -705,11 +783,15 @@
   async function renderExportCanvas(layerSnapshots) {
     try {
       const layout = UI.getLayout(state.layoutId);
+      const photos = state.filteredPhotos.slice(0, state.shotCount);
+
       const { w, h } = layout.size(state.shotCount);
-      el.exportCanvas.width = w;
+      el.exportCanvas.width  = w;
       el.exportCanvas.height = h;
+      el.exportCanvas.style.width  = Math.round(w * 0.5) + 'px';
+      el.exportCanvas.style.height = Math.round(h * 0.5) + 'px';
       const ctx = el.exportCanvas.getContext('2d');
-      layout.draw(ctx, state.filteredPhotos, {
+      layout.draw(ctx, photos, {
         frameColor: state.frameColor, textColor: state.textColor, banner: state.banner,
       });
       UI.applyFrameTheme(ctx, state.frameThemeId, w, h);
@@ -718,6 +800,9 @@
         await UI.bakeSnapshots(ctx, layerSnapshots, decorateScaleFactor);
       }
 
+      // Read final dimensions from canvas itself (w/h are block-scoped above).
+      const finalW = el.exportCanvas.width;
+      const finalH = el.exportCanvas.height;
       const galleryDataUrl = canvasToGalleryDataUrl(el.exportCanvas);
       if (!galleryDataUrl) {
         UI.showToast("Couldn't prepare this strip for the gallery. Try Download instead.");
@@ -726,8 +811,8 @@
 
       saveToGallery(galleryDataUrl, {
         layoutId: state.layoutId,
-        exportW: w,
-        exportH: h,
+        exportW: finalW,
+        exportH: finalH,
       });
     } catch (err) {
       // Nothing in this function used to catch errors — a throw from
@@ -749,37 +834,35 @@
     a.remove();
   }
 
-  el.downloadPngBtn.addEventListener('click', () => {
-    // dataUrl already comes from the full-res exportCanvas — no re-encoding needed
-    download(`snapcrate-${Date.now()}.png`, el.exportCanvas.toDataURL('image/png'));
-    UI.showToast('PNG saved');
-  });
-
-  el.downloadJpgBtn.addEventListener('click', () => {
-    // Composite onto a white-background canvas at full resolution
-    const tmp = document.createElement('canvas');
-    tmp.width = el.exportCanvas.width;
-    tmp.height = el.exportCanvas.height;
-    const tctx = tmp.getContext('2d');
-    tctx.fillStyle = '#FFFFFF';
-    tctx.fillRect(0, 0, tmp.width, tmp.height);
-    tctx.drawImage(el.exportCanvas, 0, 0);
-    download(`snapcrate-${Date.now()}.jpg`, tmp.toDataURL('image/jpeg', 0.92));
-    UI.showToast('JPG saved');
-  });
-
-  el.downloadQrBtn.addEventListener('click', () => {
+  // Smart save: uses Web Share API on mobile (iPhone/Android can save to photos directly),
+  // falls back to a standard <a download> on desktop.
+  el.downloadPngBtn.addEventListener('click', async () => {
+    const filename = `snapcrate-${Date.now()}.png`;
     const dataUrl = el.exportCanvas.toDataURL('image/png');
     const blob = dataURLtoBlob(dataUrl);
-    const blobUrl = URL.createObjectURL(blob);
-    el.qrBox.hidden = false;
-    el.qrBox.innerHTML = `
-      ${simpleCodeSvg(blobUrl)}
-      <p>Scannable QR codes need a server to host the image online.<br>For now, tap below to open your strip in a new tab on this device.</p>
-      <button class="btn btn-secondary" type="button" id="openBlobBtn">Open strip link</button>
-    `;
-    document.getElementById('openBlobBtn').addEventListener('click', () => window.open(blobUrl, '_blank'));
+
+    // Web Share API — available on iOS Safari 15+, Android Chrome, etc.
+    // Lets the user pick "Save Image", AirDrop, etc. from the native share sheet.
+    if (navigator.canShare && navigator.canShare({ files: [new File([blob], filename, { type: 'image/png' })] })) {
+      try {
+        await navigator.share({
+          files: [new File([blob], filename, { type: 'image/png' })],
+          title: 'My Snapcrate photo strip',
+        });
+        return; // share sheet handled it — no need for anchor fallback
+      } catch (err) {
+        if (err.name === 'AbortError') return; // user cancelled — do nothing
+        // Any other error: fall through to the anchor download below
+      }
+    }
+    // Desktop / browsers without Web Share: standard download
+    download(filename, dataUrl);
+    UI.showToast('Saved!');
   });
+
+  // Stubs so any lingering references in old code don't throw
+  if (el.downloadJpgBtn) el.downloadJpgBtn.addEventListener('click', () => {});
+  if (el.downloadQrBtn)  el.downloadQrBtn.addEventListener('click', () => {});
 
   function dataURLtoBlob(dataUrl) {
     const [header, base64] = dataUrl.split(',');
@@ -887,7 +970,7 @@
     list.unshift({
       id: newId,
       dataUrl,
-      layoutId: meta.layoutId || 'strip',
+      layoutId: meta.layoutId || 'freeStrip',
       exportW: meta.exportW || 1200,
       exportH: meta.exportH || 1800,
       favorite: false,
@@ -1003,13 +1086,33 @@
   /* ----------------------------------------------------------
      THEME + SOUND
   ---------------------------------------------------------- */
-  el.themeBtn.addEventListener('click', () => {
-    state.themeIdx = (state.themeIdx + 1) % THEMES.length;
+  const THEME_CYCLE_MS = 10000;
+  let themeCycleTimer = null;
+
+  function applyTheme(idx, { toast = false } = {}) {
+    state.themeIdx = ((idx % THEMES.length) + THEMES.length) % THEMES.length;
     document.body.dataset.theme = THEMES[state.themeIdx];
-    UI.showToast(`Theme: ${THEMES[state.themeIdx]}`);
-    // Manual theme picks become the new base palette the ambient
-    // system gently drifts around — keeps auto-variation "in family."
+    if (toast) UI.showToast(`Theme: ${THEMES[state.themeIdx]}`);
+    // Theme picks become the new base palette the ambient system gently
+    // drifts around — keeps auto-variation "in family."
     if (window.AmbientTheme) AmbientTheme.setBaseTheme(THEMES[state.themeIdx]);
+  }
+
+  function startThemeCycle() {
+    stopThemeCycle();
+    themeCycleTimer = setInterval(() => {
+      applyTheme(state.themeIdx + 1);
+    }, THEME_CYCLE_MS);
+  }
+
+  function stopThemeCycle() {
+    if (themeCycleTimer) { clearInterval(themeCycleTimer); themeCycleTimer = null; }
+  }
+
+  el.themeBtn.addEventListener('click', () => {
+    applyTheme(state.themeIdx + 1, { toast: true });
+    // Restart the countdown so an auto-switch doesn't fire right after a manual pick.
+    startThemeCycle();
   });
 
   let musicReady = false;
@@ -1105,18 +1208,273 @@
   window.addEventListener('beforeunload', stopMusicHard);
 
   /* ----------------------------------------------------------
+     FULLSCREEN CAMERA MODE
+  ---------------------------------------------------------- */
+
+  function enterFullscreenCamera() {
+    if (cfsActive) return;
+    cfsActive = true;
+    document.body.classList.add('camera-fullscreen');
+
+    // Move the video element into the fullscreen overlay's video wrap
+    el.cfsVideoWrap.insertBefore(el.cameraVideo, el.cfsFlash);
+
+    updateCfsProgressDots();
+    updateCfsShotsThumbnail();
+    syncCfsTimerPills();
+    renderCfsFilterTray();
+    el.cfsFilterTray.classList.add('open');
+
+    el.cfsOverlay.style.display = 'flex';
+  }
+
+  function exitFullscreenCamera() {
+    if (!cfsActive) return;
+    cfsActive = false;
+    document.body.classList.remove('camera-fullscreen');
+
+    // Move video back to the original camera-stage
+    el.cameraStage.insertBefore(el.cameraVideo, el.cameraPermission);
+
+    el.cfsShotsCard.classList.remove('open');
+    el.cfsOverlay.style.display = 'none';
+  }
+
+  function updateCfsProgressDots() {
+    el.cfsProgressDots.innerHTML = '';
+    for (let i = 0; i < state.shotCount; i++) {
+      const dot = document.createElement('div');
+      const hasPic = !!state.filteredPhotos[i];
+      const isNext = i === state.photos.filter(Boolean).length && !hasPic;
+      dot.className = 'cfs-dot' + (hasPic ? ' filled' : '') + (isNext ? ' next-dot' : '');
+      el.cfsProgressDots.appendChild(dot);
+    }
+  }
+
+  function updateCfsShotsThumbnail() {
+    const lastPhoto = [...state.filteredPhotos].reverse().find(Boolean);
+    el.cfsShotsThumBtn.innerHTML = '';
+    if (lastPhoto) {
+      const img = document.createElement('img');
+      img.src = lastPhoto.toDataURL('image/jpeg', 0.7);
+      el.cfsShotsThumBtn.appendChild(img);
+    } else {
+      el.cfsShotsThumBtn.innerHTML = `<svg viewBox="0 0 24 24" width="22" height="22"><rect x="3" y="5" width="18" height="14" rx="3" fill="currentColor" opacity=".4"/><circle cx="8.5" cy="10.5" r="1.6" fill="currentColor"/><path d="m4 17 5-5 4 4 3-3 4 4v1H4Z" fill="currentColor"/></svg>`;
+    }
+    const badge = document.createElement('div');
+    const count = state.photos.filter(Boolean).length;
+    badge.className = 'cfs-shots-count-badge';
+    badge.textContent = `${count}/${state.shotCount}`;
+    el.cfsShotsThumBtn.appendChild(badge);
+  }
+
+  function syncCfsTimerPills() {
+    el.cfsTimerPills.querySelectorAll('.cfs-timer-pill').forEach(p => {
+      p.classList.toggle('active', parseInt(p.dataset.timer, 10) === state.timerSeconds);
+    });
+  }
+
+  function renderCfsFilterTray() {
+    el.cfsFilterTray.innerHTML = '';
+    Filters.LIST.forEach(f => {
+      const chip = document.createElement('div');
+      chip.className = 'cfs-filter-chip' + (f.id === state.filterId ? ' active' : '');
+      chip.innerHTML = `<div class="swatch" style="background:${filterSwatchColor(f.id)};width:52px;height:52px;border-radius:12px;border:2px solid rgba(255,255,255,.3);"></div><span>${f.label}</span>`;
+      chip.addEventListener('click', () => {
+        state.filterId = f.id;
+        applyLiveFilterClass();
+        renderCfsFilterTray();
+    el.cfsFilterTray.classList.add('open');
+        renderFilterStrip();
+      });
+      el.cfsFilterTray.appendChild(chip);
+    });
+  }
+
+  function renderCfsShotsCard() {
+    el.cfsShotsGrid.innerHTML = '';
+    for (let i = 0; i < state.shotCount; i++) {
+      const thumb = document.createElement('div');
+      const photo = state.filteredPhotos[i];
+      thumb.className = 'cfs-mini-thumb' + (photo ? '' : ' empty');
+      if (photo) {
+        const img = document.createElement('img');
+        img.src = photo.toDataURL('image/jpeg', 0.75);
+        thumb.appendChild(img);
+        const retakeBtn = document.createElement('button');
+        retakeBtn.className = 'cfs-mini-retake';
+        retakeBtn.innerHTML = `<svg viewBox="0 0 24 24" width="11" height="11"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4m14-2v2a4 4 0 0 1-4 4H3" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+        retakeBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          startRetake(i);
+          el.cfsShotsCard.classList.remove('open');
+        });
+        thumb.appendChild(retakeBtn);
+      } else {
+        thumb.textContent = i + 1;
+      }
+      el.cfsShotsGrid.appendChild(thumb);
+    }
+    const count = state.photos.filter(Boolean).length;
+    el.cfsShotsCount.textContent = `${count}/${state.shotCount}`;
+    el.cfsProceedBtn.disabled = count < state.shotCount;
+  }
+
+  // CFS flash effect
+  function cfsFlashEffect() {
+    if (!state.flashOn) return;
+    el.cfsFlash.classList.remove('fire');
+    void el.cfsFlash.offsetWidth;
+    el.cfsFlash.classList.add('fire');
+    setTimeout(() => el.cfsFlash.classList.remove('fire'), 250);
+    // Also flash the border ring of the original stage (visible in normal mode)
+    el.cameraStage.classList.add('flash-ring');
+    setTimeout(() => el.cameraStage.classList.remove('flash-ring'), 220);
+  }
+
+  // CFS countdown (reuses the same promise shape as runCountdown)
+  function runCfsCountdown(seconds) {
+    return new Promise((resolve) => {
+      if (!seconds || seconds <= 0) return resolve();
+      el.cfsCountdown.hidden = false;
+      let n = seconds;
+      el.cfsCountdownNum.textContent = n;
+      el.cfsCountdownNum.style.animation = 'none';
+      void el.cfsCountdownNum.offsetWidth;
+      el.cfsCountdownNum.style.animation = '';
+      const tick = setInterval(() => {
+        n -= 1;
+        if (n <= 0) {
+          clearInterval(tick);
+          el.cfsCountdown.hidden = true;
+          resolve();
+        } else {
+          el.cfsCountdownNum.textContent = n;
+          el.cfsCountdownNum.style.animation = 'none';
+          void el.cfsCountdownNum.offsetWidth;
+          el.cfsCountdownNum.style.animation = '';
+        }
+      }, 1000);
+    });
+  }
+
+  // Shutter in fullscreen mode
+  let cfsBusy = false;
+  async function cfsCapture() {
+    if (cfsBusy) return;
+    if (state.retakeSlot === null && state.photos.filter(Boolean).length >= state.shotCount) return;
+    cfsBusy = true;
+    el.cfsShutterBtn.disabled = true;
+
+    await runCfsCountdown(state.timerSeconds);
+    // Fire flash (both cfsFlash and border ring)
+    cfsFlashEffect();
+    flashEffect(); // keeps the original flash in sync
+
+    const raw = Camera.grabFrame();
+    const filtered = Filters.apply(state.filterId, raw);
+
+    if (state.retakeSlot !== null) {
+      state.photos[state.retakeSlot] = raw;
+      state.filteredPhotos[state.retakeSlot] = filtered;
+      UI.showToast(`Photo ${state.retakeSlot + 1} replaced!`);
+      state.retakeSlot = null;
+    } else {
+      state.photos.push(raw);
+      state.filteredPhotos.push(filtered);
+    }
+
+    updateShotsPanel();
+    updateCfsProgressDots();
+    updateCfsShotsThumbnail();
+    renderCfsShotsCard();
+
+    el.cfsShutterBtn.disabled = false;
+    cfsBusy = false;
+
+    const count = state.photos.filter(Boolean).length;
+    if (count >= state.shotCount) {
+      // Auto-open the shots card when all are done
+      el.cfsShotsCard.classList.add('open');
+      renderCfsShotsCard();
+    }
+  }
+
+  // Wire up fullscreen camera controls
+  el.enterFullscreenBtn.addEventListener('click', enterFullscreenCamera);
+  el.cfsExitBtn.addEventListener('click', exitFullscreenCamera);
+
+  el.cfsFlipBtn.addEventListener('click', async () => {
+    const result = await Camera.flip();
+    if (!result.ok) UI.showToast("Couldn't switch camera");
+    applyLiveFilterClass();
+  });
+
+  el.cfsTimerPills.addEventListener('click', (e) => {
+    const btn = e.target.closest('.cfs-timer-pill');
+    if (!btn) return;
+    state.timerSeconds = parseInt(btn.dataset.timer, 10);
+    syncCfsTimerPills();
+    // Also sync the normal timer pills
+    el.timerPills.querySelectorAll('.pill-btn').forEach(p => p.classList.toggle('active', parseInt(p.dataset.timer, 10) === state.timerSeconds));
+  });
+
+  el.cfsShutterBtn.addEventListener('click', cfsCapture);
+
+  el.cfsShotsThumBtn.addEventListener('click', () => {
+    el.cfsShotsCard.classList.toggle('open');
+    if (el.cfsShotsCard.classList.contains('open')) renderCfsShotsCard();
+  });
+  el.cfsShotsCardClose.addEventListener('click', () => {
+    el.cfsShotsCard.classList.remove('open');
+  });
+
+  el.cfsProceedBtn.addEventListener('click', async () => {
+    exitFullscreenCamera();
+    Camera.stop();
+    state.retakeSlot = null;
+
+    // Same clamp as the normal toDecorateBtn path
+    state.filteredPhotos = state.filteredPhotos.slice(0, state.shotCount);
+    state.photos         = state.photos.slice(0, state.shotCount);
+    while (state.filteredPhotos.length < state.shotCount) state.filteredPhotos.push(null);
+    while (state.photos.length         < state.shotCount) state.photos.push(null);
+
+    goToScreen('decorate');
+    renderDecorateStage();
+  });
+
+  // Flash border ring on normal capture too (even outside fullscreen)
+  // patch the original flashEffect to also ring the border
+  const _origFlashEffect = flashEffect;
+
+  /* ----------------------------------------------------------
+     DECORATE FULLSCREEN TOGGLE
+  ---------------------------------------------------------- */
+
+  el.decorateFullscreenBtn.addEventListener('click', () => {
+    decorateFs = !decorateFs;
+    document.body.classList.toggle('decorate-fullscreen', decorateFs);
+    // Update icon
+    const icon = decorateFs
+      ? `<svg viewBox="0 0 24 24" width="16" height="16"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+      : `<svg viewBox="0 0 24 24" width="16" height="16"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    el.decorateFullscreenBtn.innerHTML = icon;
+  });
+
+  /* ----------------------------------------------------------
      INIT
   ---------------------------------------------------------- */
   function init() {
     UI.renderBgDecor(el.bgDecor);
-    renderLayoutGrid();
-    populateShotCountSelect();
+    initLayoutPicker();
     renderGalleryBadge();
     initMusic();
     UI.loadStickerManifest();
     goToScreen('layout');
     if (window.AmbientTheme) AmbientTheme.init(THEMES[state.themeIdx]);
-    window.addEventListener('beforeunload', () => Camera.stop());
+    startThemeCycle();
+    window.addEventListener('beforeunload', () => { Camera.stop(); exitFullscreenCamera(); stopThemeCycle(); });
   }
 
   document.addEventListener('DOMContentLoaded', init);

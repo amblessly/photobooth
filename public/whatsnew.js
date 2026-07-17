@@ -58,7 +58,7 @@
         <button class="whatsnew-close" id="whatsnewCloseBtn" type="button" aria-label="Close">
           <svg viewBox="0 0 24 24" width="18" height="18"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>
         </button>
-        <h2 id="whatsnewTitle">🎉 What's New in Snapcrate</h2>
+        <h2 id="whatsnewTitle"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px"><path d="M12 3l1.8 4.7L18.5 9.5 13.8 11.3 12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3Z"/><path d="M19 15l.7 1.8L21.5 17.5l-1.8.7L19 20l-.7-1.8L16.5 17.5l1.8-.7L19 15Z"/></svg> What's New in Snapcrate</h2>
         <ul class="whatsnew-list">${featureItems}</ul>
         <button class="whatsnew-cta" id="whatsnewGotItBtn" type="button">Got it</button>
       </div>

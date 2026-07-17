@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Snapcrate — Your cute little photobooth</title>
+<meta name="description" content="Snapcrate is a browser-based photobooth. Pick a strip, strike a pose, decorate with stickers, and save — no installs needed." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/src/main.css">
+<script type="module" src="/src/landing.js"></script>
+</head>
+<body data-theme="cute" class="info-body">
+
+  <div class="bg-decor" id="bgDecor" aria-hidden="true"></div>
+
+  <!-- ============ NAV ============ -->
+  <header class="info-nav">
+    <a class="info-brand" href="#top">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 48 48" width="32" height="32">
+          <rect x="4" y="10" width="40" height="30" rx="8" fill="var(--accent)"/>
+          <circle cx="24" cy="25" r="9" fill="var(--cream)"/>
+          <circle cx="24" cy="25" r="5" fill="var(--ink)"/>
+          <rect x="16" y="6" width="10" height="7" rx="3" fill="var(--accent)"/>
+          <circle cx="36" cy="17" r="2.3" fill="var(--mint)"/>
+        </svg>
+      </span>
+      <span class="info-brand-name">Snapcrate</span>
+    </a>
+    <nav class="info-nav-links">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a class="btn btn-primary info-nav-cta" href="/start">Get Started</a>
+    </nav>
+  </header>
+
+  <main id="top">
+
+    <!-- ============ HERO ============ -->
+    <section class="info-hero">
+      <div class="info-hero-text">
+        <span class="info-pill">
+          <svg class="info-pill-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="13.5" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 7l1.5-2.5h5L16 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+          No installs · runs in your browser
+        </span>
+        <h1 class="info-hero-title">Your cute little <span class="info-accent">photobooth</span>.</h1>
+        <p class="info-hero-sub">Pick a strip, strike a pose, decorate with stickers &amp; text, and save your memories — all in a few taps.</p>
+        <div class="info-hero-actions">
+          <a class="btn btn-primary btn-lg" href="/start">
+            Get Started
+            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <a class="btn btn-ghost btn-lg" href="#features">See features</a>
+        </div>
+        <p class="info-hero-note">Free forever · No sign-up · Just a name to personalize.</p>
+      </div>
+
+      <div class="info-hero-art" aria-hidden="true">
+        <div class="info-strip">
+          <div class="info-strip-cell">
+            <svg viewBox="0 0 48 48" width="40" height="40" aria-hidden="true"><circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="17" cy="20" r="2.4" fill="currentColor"/><circle cx="31" cy="20" r="2.4" fill="currentColor"/><path d="M15 29c2.5 3.5 6 5 9 5s6.5-1.5 9-5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+          </div>
+          <div class="info-strip-cell">
+            <svg viewBox="0 0 48 48" width="40" height="40" aria-hidden="true"><path d="M18 26V10a3 3 0 0 1 6 0v11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M24 21v-3a3 3 0 0 1 6 0v3" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M12 24l-2 4a10 10 0 0 0 9 12h5a10 10 0 0 0 10-10V18a3 3 0 0 0-6 0v3" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="info-strip-cell">
+            <svg viewBox="0 0 48 48" width="40" height="40" aria-hidden="true"><circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="3"/><path d="M10 18h11a3 3 0 0 1 3 3 3 3 0 0 1 3-3h11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><rect x="12" y="18" width="9" height="7" rx="3.5" fill="currentColor"/><rect x="27" y="18" width="9" height="7" rx="3.5" fill="currentColor"/><path d="M17 32c2 2 5 3 7 3s5-1 7-3" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+          </div>
+          <div class="info-strip-cap">
+            Snapcrate
+            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" style="vertical-align:-2px"><path d="M12 21s-7-4.5-9.5-9C.5 8 2.5 4 6 4c2 0 3.2 1.1 4 2.3C10.8 5.1 12 4 14 4c3.5 0 5.5 4 3.5 8-2.5 4.5-9.5 9-9.5 9Z" fill="currentColor"/></svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FEATURES ============ -->
+    <section class="info-section" id="features">
+      <div class="info-section-head">
+        <h2>Everything you need for the perfect strip</h2>
+        <p>Packed with fun tools, zero learning curve.</p>
+      </div>
+
+      <div class="info-grid">
+        <article class="info-feature">
+          <span class="info-feature-icon">
+            <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 4v16M17 4v16" stroke="currentColor" stroke-width="2"/><path d="M3 9h4M3 15h4M17 9h4M17 15h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </span>
+          <h3>Multiple layouts</h3>
+          <p>Classic strips, 4-grid collages, and polaroids. Shot count follows the layout automatically.</p>
+        </article>
+        <article class="info-feature">
+          <span class="info-feature-icon">
+            <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><rect x="2" y="6" width="20" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="13" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 6l1.5-2.5h5L16 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+          </span>
+          <h3>Live camera + timer</h3>
+          <p>Front/rear flip, mirror toggle, self-timer, and a flash effect. Fullscreen mode for mobile.</p>
+        </article>
+        <article class="info-feature">
+          <span class="info-feature-icon">
+            <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5 13.8 11.3 12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3Z" fill="currentColor"/><path d="M18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8L18 15Z" fill="currentColor"/></svg>
+          </span>
+          <h3>Filters</h3>
+          <p>Six pixel-accurate filters — Cartoon, Comic B&amp;W, Sepia, Color Pop, Dreamy, and Original.</p>
+        </article>
+        <article class="info-feature">
+          <span class="info-feature-icon">
+            <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M20 12a8 8 0 1 0-8 8c1.1 0 1.8-.9 1.8-1.9 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-1 .8-1.8 1.8-1.8H16a4 4 0 0 0 4-4Z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="8" cy="11" r="1.4" fill="currentColor"/><circle cx="12" cy="8" r="1.4" fill="currentColor"/><circle cx="16" cy="10" r="1.4" fill="currentColor"/></svg>
+          </span>
+          <h3>Stickers &amp; text</h3>
+          <p>Drag, resize, and rotate stickers and captions. 10 frame themes to make it yours.</p>
+        </article>
+        <article class="info-feature">
+          <span class="info-feature-icon">
+            <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="8.5" cy="10" r="1.8" fill="currentColor"/><path d="M4 17l5-5 4 4 3-3 4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <h3>Gallery</h3>
+          <p>Every finished strip is saved locally. Mark favorites and revisit them anytime.</p>
+        </article>
+        <article class="info-feature">
+          <span class="info-feature-icon">
+            <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8 10h8M8 13h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </span>
+          <h3>Community wall</h3>
+          <p>Leave a rating, drop a message, and heart other creators on the feedback wall.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ HOW IT WORKS ============ -->
+    <section class="info-section info-section-alt" id="how">
+      <div class="info-section-head">
+        <h2>How it works</h2>
+        <p>From zero to photo strip in four simple steps.</p>
+      </div>
+
+      <div class="info-steps">
+        <div class="info-step">
+          <span class="info-step-num">1</span>
+          <h3>Pick your strip</h3>
+          <p>Browse layouts and choose the one that fits your vibe.</p>
+        </div>
+        <div class="info-step">
+          <span class="info-step-num">2</span>
+          <h3>Strike a pose</h3>
+          <p>Capture your shots with the timer and live filter preview.</p>
+        </div>
+        <div class="info-step">
+          <span class="info-step-num">3</span>
+          <h3>Decorate</h3>
+          <p>Add stickers, text, and a frame theme to make it pop.</p>
+        </div>
+        <div class="info-step">
+          <span class="info-step-num">4</span>
+          <h3>Save &amp; share</h3>
+          <p>Download your strip and keep it in your gallery.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SOCIAL PROOF ============ -->
+    <section class="info-section info-reviews">
+      <div class="info-reviews-card">
+        <div class="info-review-stat">
+          <span class="info-review-value">4.9</span>
+          <span class="info-review-stars" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.7L12 17.8 6 20.9l1.5-6.7L2.3 9.6l6.9-.7L12 2Z" fill="currentColor"/></svg>
+            <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.7L12 17.8 6 20.9l1.5-6.7L2.3 9.6l6.9-.7L12 2Z" fill="currentColor"/></svg>
+            <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.7L12 17.8 6 20.9l1.5-6.7L2.3 9.6l6.9-.7L12 2Z" fill="currentColor"/></svg>
+            <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.7L12 17.8 6 20.9l1.5-6.7L2.3 9.6l6.9-.7L12 2Z" fill="currentColor"/></svg>
+            <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.7L12 17.8 6 20.9l1.5-6.7L2.3 9.6l6.9-.7L12 2Z" fill="currentColor"/></svg>
+          </span>
+          <span class="info-review-label">Average rating</span>
+        </div>
+        <div class="info-review-divider" aria-hidden="true"></div>
+        <div class="info-review-stat">
+          <span class="info-review-value">8+</span>
+          <span class="info-review-label">Community reviews</span>
+        </div>
+        <div class="info-review-divider" aria-hidden="true"></div>
+        <div class="info-review-stat">
+          <span class="info-review-value">100%</span>
+          <span class="info-review-label">Free &amp; no sign-up</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FINAL CTA ============ -->
+    <section class="info-cta">
+      <div class="info-cta-card">
+        <h2>Ready to make some memories?</h2>
+        <p>It only takes a name to get started.</p>
+        <a class="btn btn-primary btn-lg" href="/start">
+          Get Started
+          <svg viewBox="0 0 24 24" width="18" height="18"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="info-footer">
+    <p>© <span id="year"></span> Snapcrate · Made with <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true" style="vertical-align:-2px;color:var(--accent)"><path d="M12 21s-7-4.5-9.5-9C.5 8 2.5 4 6 4c2 0 3.2 1.1 4 2.3C10.8 5.1 12 4 14 4c3.5 0 5.5 4 3.5 8-2.5 4.5-9.5 9-9.5 9Z" fill="currentColor"/></svg> for happy little moments.</p>
+  </footer>
+
+</body>
+</html>
+

@@ -1,0 +1,22 @@
+{
+  "name": "snapcrate-photobooth",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "assets": "node build-assets.cjs",
+    "assets:stickers": "node build-assets.cjs stickers",
+    "assets:trim": "node build-assets.cjs trim"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.0",
+    "tailwindcss": "^4.1.0",
+    "vite": "^6.0.0"
+  },
+  "allowScripts": {
+    "esbuild@0.25.12": true
+  }
+}

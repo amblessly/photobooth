@@ -67,7 +67,7 @@
     section.innerHTML = `
 <div class="feedback-section-inner">
   <div class="feedback-section-head">
-    <h2>💬 What did you think?</h2>
+    <h2><svg class="fb-head-icon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-4 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"/><path d="M8 10h8M8 13h5" stroke-linecap="round"/></svg> What did you think?</h2>
     <p>Your feedback helps make Snapcrate even better for everyone.</p>
   </div>
 
@@ -464,7 +464,7 @@
         list.innerHTML =
           '<div class="fb-wall-empty">' +
             '<svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>' +
-            '<p>No reviews yet — be the first! 🌟</p>' +
+            '<p>No reviews yet — be the first!</p>' +
           '</div>';
         updateWallSummary();
         return;
@@ -500,7 +500,7 @@
       el.textContent = 'No reviews yet.';
     } else {
       el.innerHTML = displayedCount + (allLoaded ? '' : '+') + ' review' + (displayedCount !== 1 ? 's' : '') +
-        (avg ? ' <span class="fb-avg-stars">★ ' + avg + '</span>' : '');
+        (avg ? ' <span class="fb-avg-stars">' + STAR_SVG + ' ' + avg + '</span>' : '');
     }
   }
 

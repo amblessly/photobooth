@@ -334,7 +334,7 @@ h1, h2, h3 { font-family: var(--font-display); color: var(--ink); margin: 0; }
 .camera-wrap { display: flex; flex-direction: column; gap: 14px; }
 .camera-stage {
   position: relative;
-  aspect-ratio: 2 / 1.1;
+  aspect-ratio: 16 / 10;
   width: 100%;
   background: var(--ink);
   border-radius: var(--radius-lg);
@@ -343,7 +343,7 @@ h1, h2, h3 { font-family: var(--font-display); color: var(--ink); margin: 0; }
   box-shadow: 0 10px 0 rgba(var(--shadow-color)/.1), 0 20px 40px rgba(var(--shadow-color)/.18);
 }
 @media (max-width: 700px) {
-  .camera-stage { aspect-ratio: 3 / 4; border-width: 4px; }
+  .camera-stage { aspect-ratio: 9 / 16; border-width: 4px; }
 }
 @media (max-width: 700px) and (orientation: landscape) {
   .camera-stage { aspect-ratio: 16 / 9; }
@@ -1484,15 +1484,17 @@ body.decorate-fullscreen .decorate-fullscreen-btn {
 /* Camera page: fix camera taking full width of its column at 100% height */
 .camera-stage {
   aspect-ratio: unset !important;
-  height: calc(100vh - 260px);
-  min-height: 320px;
-  max-height: 680px;
+  height: calc(100vh - 240px);
+  min-height: 360px;
+  max-height: 720px;
 }
 @media (max-width: 880px) {
   .camera-stage {
-    height: 55vw;
-    min-height: 240px;
-    max-height: 480px;
+    aspect-ratio: 9 / 16 !important;
+    height: auto;
+    width: 100%;
+    max-height: none;
+    min-height: 0;
   }
 }
 

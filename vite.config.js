@@ -80,8 +80,8 @@ function cleanUrls() {
 }
 
 export default defineConfig({
-  base: './',
-  plugins: [cleanUrls(), tailwindcss()],
+  base: '/',
+  plugins: [cleanUrls(), tailwindcss(), prettyUrls()],
   server: {
     host: true,
     port: PORT,
@@ -99,8 +99,36 @@ export default defineConfig({
       input: {
         landing: resolve(__dirname, 'landing.html'),
         start: resolve(__dirname, 'start.html'),
-        photobooth: resolve(__dirname, 'index.html'),
+        booth: resolve(__dirname, 'index.html'),
       },
     },
   },
 });
+
+// Emit pretty URLs so the static build serves /booth and /start cleanly
+// (GitHub Pages has no rewrite middleware). start.html -> /start/index.html,
+// index.html (booth) -> /booth/index.html. landing.html stays at /index.html.
+function prettyUrls() {
+  return {
+    name: 'snapcrate-pretty-urls',
+    apply: 'build',
+    async closeBundle() {
+      if (process.env.SNAPCRATE_NO_PRETTY) return;
+      const fs = await import('fs/promises');
+      const path = await import('path');
+      const dist = resolve(__dirname, 'dist');
+      const moves = [
+        ['start.html', 'start/index.html'],
+        ['index.html', 'booth/index.html'],
+      ];
+      for (const [from, to] of moves) {
+        const src = path.join(dist, from);
+        const dest = path.join(dist, to);
+        try {
+          await fs.mkdir(path.dirname(dest), { recursive: true });
+          await fs.rename(src, dest);
+        } catch (_) {}
+      }
+    },
+  };
+}

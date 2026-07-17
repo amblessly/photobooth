@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (_) {
       /* localStorage unavailable — proceed anyway with a session name */
     }
-    window.location.href = './index.html';
+    window.location.href = '/booth';
   });
 
   input.focus();

@@ -2504,66 +2504,6 @@ body.decorate-fullscreen .decorate-fullscreen-btn {
   min-height: 200px;
 }
 
-/* ── Strip preview ── */
-.il-strip-frame {
-  position: relative;
-  width: 90px;
-  background: var(--cream, #FFF8F0);
-  border-radius: 8px;
-  padding: 10px 10px 28px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  box-shadow: 0 8px 24px -10px rgba(43, 33, 56, .3);
-}
-.il-strip-slot {
-  width: 70px;
-  aspect-ratio: 4 / 3;
-  border-radius: 4px;
-  background: linear-gradient(135deg, var(--accent-soft), var(--mint-soft));
-}
-.il-strip-sprocket {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-  background: var(--border, #e2d8cf);
-}
-.il-strip-sprocket:nth-child(4) { top: 14px; left: -5px; }
-.il-strip-sprocket:nth-child(5) { top: 14px; right: -5px; }
-.il-strip-sprocket:nth-child(6) { top: 52px; left: -5px; }
-.il-strip-sprocket:nth-child(7) { top: 52px; right: -5px; }
-.il-strip-sprocket:nth-child(8) { top: 90px; left: -5px; }
-.il-strip-sprocket:nth-child(9) { top: 90px; right: -5px; }
-.il-strip-label {
-  position: absolute;
-  bottom: 6px;
-  left: 0;
-  right: 0;
-  text-align: center;
-  font-family: 'Baloo 2', system-ui, sans-serif;
-  font-weight: 700;
-  font-size: .6rem;
-  color: var(--accent);
-}
-
-/* ── Grid preview ── */
-.il-grid-frame {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  width: 130px;
-  padding: 10px;
-  background: var(--cream, #FFF8F0);
-  border-radius: 10px;
-  box-shadow: 0 8px 24px -10px rgba(43, 33, 56, .3);
-}
-.il-grid-cell {
-  aspect-ratio: 1;
-  border-radius: 6px;
-  background: linear-gradient(135deg, var(--accent-soft), var(--mint-soft));
-}
-
 /* ── Polaroid preview ── */
 .il-polaroid-frame {
   display: flex;

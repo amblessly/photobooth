@@ -2436,55 +2436,38 @@ body.decorate-fullscreen .decorate-fullscreen-btn {
   margin: 0;
 }
 
-/* Hero art � mini photo strip */
+/* Hero art — layouts previews */
 .info-hero-art {
   display: flex;
-  justify-content: center;
-}
-.info-strip {
-  background: var(--surface);
-  padding: 14px 14px 20px;
-  border-radius: var(--radius-md);
-  box-shadow: 0 30px 70px -30px rgba(43, 33, 56, .45);
-  transform: rotate(3deg);
-  display: flex;
   flex-direction: column;
-  gap: 10px;
-  width: clamp(180px, 26vw, 240px);
-  animation: landingPop .6s var(--ease-smooth, cubic-bezier(.34,1.56,.64,1)) both;
-}
-.info-strip-cell {
-  aspect-ratio: 4 / 3;
-  border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, var(--accent-soft), var(--mint-soft));
-  display: flex;
   align-items: center;
-  justify-content: center;
 }
-.info-strip-cell span { font-size: clamp(2rem, 5vw, 2.8rem); }
-.info-strip-cell svg { color: var(--ink); opacity: .85; }
-.info-strip-cap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
+.info-layouts-previews {
+  width: 100%;
 }
-.info-strip-cap {
+.info-layouts-head {
   text-align: center;
+  margin-bottom: 20px;
+}
+.info-layouts-head h2 {
   font-family: 'Baloo 2', system-ui, sans-serif;
-  font-weight: 700;
-  color: var(--accent);
-  font-size: 1rem;
-  padding-top: 2px;
+  font-weight: 800;
+  font-size: clamp(1.3rem, 3vw, 1.8rem);
+  color: var(--ink);
+  margin: 0 0 4px;
+}
+.info-layouts-head p {
+  color: var(--ink-soft);
+  font-size: .92rem;
+  margin: 0;
 }
 
-/* ── Layouts showcase ── */
-.info-layouts-section { padding-bottom: clamp(32px, 6vw, 64px); }
+/* ── Layouts grid ── */
 .info-layouts-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  max-width: 960px;
+  gap: 18px;
+  max-width: 600px;
   margin: 0 auto;
 }
 .info-layout-card {

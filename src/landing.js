@@ -192,18 +192,4 @@ document.addEventListener('DOMContentLoaded', async () => {
     img.style.borderRadius = '14px';
     stripTarget.appendChild(img);
   }
-
-  // Render grid (images 4-7)
-  const gridCanvas = renderGrid(allImages.slice(3, 7));
-  const gridTarget = document.getElementById('preview-grid');
-  if (gridTarget) {
-    gridTarget.innerHTML = '';
-    const img = document.createElement('img');
-    img.src = gridCanvas.toDataURL('image/jpeg', 0.92);
-    img.alt = '4-Grid Collage preview';
-    img.style.width = '100%';
-    img.style.maxWidth = '220px';
-    img.style.borderRadius = '30px';
-    gridTarget.appendChild(img);
-  }
 });

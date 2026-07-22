@@ -179,20 +179,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     Array.from({ length: 7 }, (_, i) => loadImage(`img/${i + 1}.jpeg`))
   );
 
-  // Render strip (images 1-3)
-  const stripCanvas = renderStrip(allImages.slice(0, 3));
-  const stripTarget = document.getElementById('preview-strip');
-  if (stripTarget) {
-    stripTarget.innerHTML = '';
-    const img = document.createElement('img');
-    img.src = stripCanvas.toDataURL('image/jpeg', 0.92);
-    img.alt = 'Classic Strip preview';
-    img.style.width = '100%';
-    img.style.maxWidth = '160px';
-    img.style.borderRadius = '14px';
-    stripTarget.appendChild(img);
-  }
-
   // Render grid (images 4-7)
   const gridCanvas = renderGrid(allImages.slice(3, 7));
   const gridTarget = document.getElementById('preview-grid');

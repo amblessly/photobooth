@@ -2466,33 +2466,25 @@ body.decorate-fullscreen .decorate-fullscreen-btn {
 .info-layouts-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-  max-width: 600px;
+  gap: 24px;
+  max-width: 700px;
   margin: 0 auto;
+  align-items: start;
 }
-.info-layout-card {
-  background: var(--surface);
-  border-radius: var(--radius-lg);
-  padding: 24px 18px 22px;
+.info-layout-item {
   text-align: center;
-  box-shadow: 0 16px 40px -26px rgba(43, 33, 56, .28);
-  transition: transform .25s ease, box-shadow .25s ease;
 }
-.info-layout-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 28px 56px -26px rgba(43, 33, 56, .38);
-}
-.info-layout-card h3 {
+.info-layout-item h3 {
   font-family: 'Baloo 2', system-ui, sans-serif;
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: var(--ink);
-  margin: 14px 0 6px;
+  margin: 12px 0 4px;
 }
-.info-layout-card p {
+.info-layout-item p {
   color: var(--ink-soft);
-  font-size: .88rem;
-  line-height: 1.5;
+  font-size: .82rem;
+  line-height: 1.45;
   margin: 0;
 }
 
@@ -2500,8 +2492,7 @@ body.decorate-fullscreen .decorate-fullscreen-btn {
 .info-layout-preview {
   display: flex;
   justify-content: center;
-  align-items: center;
-  min-height: 200px;
+  align-items: flex-start;
 }
 
 /* ── Polaroid preview ── */

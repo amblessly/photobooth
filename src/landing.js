@@ -188,8 +188,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     img.src = stripCanvas.toDataURL('image/jpeg', 0.92);
     img.alt = 'Classic Strip preview';
     img.style.width = '100%';
-    img.style.borderRadius = '12px';
-    img.style.boxShadow = '0 8px 24px -10px rgba(43,33,56,.3)';
+    img.style.maxWidth = '160px';
+    img.style.borderRadius = '14px';
     stripTarget.appendChild(img);
   }
 
@@ -202,8 +202,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     img.src = gridCanvas.toDataURL('image/jpeg', 0.92);
     img.alt = '4-Grid Collage preview';
     img.style.width = '100%';
-    img.style.borderRadius = '12px';
-    img.style.boxShadow = '0 8px 24px -10px rgba(43,33,56,.3)';
+    img.style.maxWidth = '220px';
+    img.style.borderRadius = '30px';
     gridTarget.appendChild(img);
   }
 });

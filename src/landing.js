@@ -76,7 +76,7 @@ function renderStrip(images) {
   const ctx = c.getContext('2d');
 
   // frame bg
-  ctx.fillStyle = '#FFFFFF';
+  ctx.fillStyle = '#4A90D9';
   roundRect(ctx, 0, 0, w, h, 26); ctx.fill();
 
   // photos
@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     img.src = stripCanvas.toDataURL('image/jpeg', 0.92);
     img.alt = 'Classic Strip preview';
     img.style.width = '100%';
-    img.style.maxWidth = '160px';
+    img.style.maxWidth = '280px';
     img.style.borderRadius = '14px';
     stripTarget.appendChild(img);
   }

@@ -2467,7 +2467,7 @@ body.decorate-fullscreen .decorate-fullscreen-btn {
   display: grid;
   grid-template-columns: 1fr;
   gap: 24px;
-  max-width: 260px;
+  max-width: 320px;
   margin: 0 auto;
   align-items: start;
 }

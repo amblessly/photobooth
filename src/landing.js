@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     img.src = stripCanvas.toDataURL('image/jpeg', 0.92);
     img.alt = 'Classic Strip preview';
     img.style.width = '100%';
-    img.style.maxWidth = '360px';
+    img.style.maxWidth = '330px';
     img.style.borderRadius = '14px';
     img.style.boxShadow = '0 20px 50px -12px rgba(37,99,235,.45)';
     stripTarget.appendChild(img);
